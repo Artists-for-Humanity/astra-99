@@ -1,0 +1,5 @@
+{
+    "extends": ["@parcel/config-default"],
+    "resolvers": ["...", "parcel-resolver-exclude-assets"],
+    "reporters":  ["...", "parcel-reporter-clean-dist"]
+  }

@@ -1,0 +1,39 @@
+{
+  "name": "astra-99",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "npm run build",
+    "prebuild": "rm -rf public/dist/*",
+    "build": "npx parcel build public/index.html --dist-dir dist",
+    "postbuild": "npx http-server ./dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.11.9",
+    "@typescript-eslint/eslint-plugin": "^5.20.0",
+    "@typescript-eslint/parser": "^5.20.0",
+    "eslint": "^8.14.0",
+    "parcel": "^2.7.0",
+    "parcel-plugin-static-files-copy": "^2.6.0",
+    "parcel-reporter-clean-dist": "^1.0.4",
+    "parcel-resolver-exclude-assets": "^2.0.0",
+    "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "@types/webfontloader": "^1.6.35",
+    "http-server": "^14.1.1",
+    "phaser": "^3.55.2",
+    "webfontloader": "^1.6.28"
+  },
+  "cleanDistFiles": [
+    "/dist/*.*"
+  ],
+  "nodemonConfig": {
+    "watch": "src/*.*",
+    "ext": ".ts"
+  }
+}
