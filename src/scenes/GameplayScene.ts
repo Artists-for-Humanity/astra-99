@@ -1,6 +1,7 @@
 import { Scene, GameObjects, Types } from 'phaser';
 import DirectoryManager from '../managers/DirectoryManager';
 import Beatmap from '../managers/BeatmapManager';
+import { doesNotThrow } from 'node:assert';
 
 const directories = new DirectoryManager();
 
@@ -18,6 +19,14 @@ type BeatmapObj = {
     endTime: number;
 }[]
 
+type NumberText = {text?: Phaser.GameObjects.Text, value: number}
+interface GameData {
+  scrollSpeed: number,
+  score: NumberText,
+  accuracy: NumberText,
+  maxCombo: NumberText,
+  combo: NumberText,
+}
 export default class GameplayScene extends Scene {
     [x: string]: any;
     keybinds: unknown
@@ -25,6 +34,8 @@ export default class GameplayScene extends Scene {
     beatmap?: BeatmapObj
     map?: Phaser.Physics.Arcade.Group
     receptorBody?: Phaser.Physics.Arcade.StaticGroup
+    timingPoints: {time: number, bpm: number}[] // will work on this later to improve syncing capabilities
+    gameData: GameData
   constructor() {
     super({ key: 'GameplayScene' });
     this.keybinds;
@@ -32,6 +43,22 @@ export default class GameplayScene extends Scene {
     this.beatmap;
     this.map;
     this.receptorBody;
+    this.timingPoints = []; // to be improved
+    this.gameData = {
+      scrollSpeed: 10,
+      score: {
+        value: 0,
+      },
+      accuracy: {
+        value: 100.0,
+      },
+      maxCombo: {
+        value: 0,
+      },
+      combo: {
+        value: 0,
+      },
+    }
   }
   preload() {
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
@@ -52,12 +79,23 @@ export default class GameplayScene extends Scene {
     this.load.plugin('rexcontainerliteplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexcontainerliteplugin.min.js', true);
     // const beatmap = new Beatmap()
     this.load.text('beatmap', new URL('http://192.168.4.133:8080/assets/beatmaps/beatmap.osu').href);
-    new AudioContext().resume();
+    const audioCheck = () => {
+      window.AudioContext = window.AudioContext
+      if (window.AudioContext){
+        return true;
+      }
+      else {
+        return false;
+      }
+    };
+
+    if (audioCheck()) {
+      new window.AudioContext();
+    }
     this.load.audio('beatmap-audio', new URL('http://192.168.4.133:8080/assets/beatmaps/001/audio.mp3').href)
-    
+    this.sound.volume
 }
   create() {
-    
     this.sound.add('beatmap-audio');
     this.beatmap = Beatmap(this.cache.text.get('beatmap'));
     this.keybinds = this.input.keyboard.addKeys('Q,W,O,P');
@@ -100,16 +138,42 @@ export default class GameplayScene extends Scene {
     this.map.setDepth(1);
     FullTrack.setDepth(0);
 
-    this.map!.children.iterate(note => {
-        this.physics.overlap(note, Receptors, () => {
-            console.log('hit');
-        })
-    })
+    // this.map!.children.iterate(note => {
+    //     this.physics.add.overlap(note, Receptors, () => {
+    //         console.log('hit');
+    //     }, undefined, this)
+    // })
     this.receptorBody = Receptors;
-    
+
+    // adding text
+    this.gameData.accuracy.text = this.add.text(innerWidth - 250, 100, '100.0%', {
+      fontSize: '64px',
+      fontFamily: 'Arial',
+      fontStyle: 'italic'
+    });
+
+    this.gameData.score.text = this.add.text(innerWidth - 300, 16, '0000000', {
+      fontSize: '72px',
+      fontFamily: 'Arial',
+      fontStyle: 'italic'
+    });
+
+    this.gameData.combo.text = this.add.text(innerWidth - 250, innerHeight - 100, '0x', {
+      fontSize: '64px',
+      fontFamily: 'Arial',
+      fontStyle: 'italic'
+    });
+    this.physics.pause()
+    if (window.AudioContext) {
+      this.sound.play('beatmap-audio');
+    }
+
+    this.gameData.scrollSpeed = Math.abs(this.receptorBody!.getChildren()[0].body.position.y - this.map!.getChildren()[0].body.position.y) / 750
+    console.log(this.gameData.scrollSpeed)
 }
   update() {
-    this.map!.incY(10.41);
+    this.map!.incY(this.gameData.scrollSpeed);
+
     const referenceKeys = ['Q', "W", "O", "P"]
 
 
@@ -118,9 +182,11 @@ export default class GameplayScene extends Scene {
             const column = referenceKeys.indexOf(key);
             (this.components!.getByName('chutes') as GameObjects.Container).getByName('chute-' + column.toString()).setState(1);
 
-            // // this.receptorBody?.getChildren().find(c => c.name === `receptor-${column}`)!.state == 1
-            // const hitNote = this.map!.getChildren().find(n => n.state === 1);
-            // this.pressNote(this.receptorBody?.getChildren().find(c => c.name === `receptor-${column}`)!.state == 1, hitNote)
+            if (this.physics.overlap(this.map!, this.receptorBody!.getChildren().find(r => r.name === `receptor-${column}`))) {
+                const recCol = this.receptorBody!.getChildren().find(r => r.name === `receptor-${column}`)
+                this.trackAndDeleteNote(this.map!, recCol);
+                return;
+            }
 
         });
         this.input.keyboard.on('keyup-' + key, () => {
@@ -135,14 +201,32 @@ export default class GameplayScene extends Scene {
             chute.setTexture('chute');
         }
     });
-    this.sound.play('beatmap-audio');
+    
   }
 
-  trackAndDeleteNote(note: any) {
+  trackAndDeleteNote(notes: Phaser.Physics.Arcade.Group | undefined, receptor: any) {
+    const note = notes!.getChildren().find(n => {
+        return this.physics.overlap(n, receptor);
+    })
 
+    if(note!.state === 3) return; // this only calls the deletion and judgement once
+    const noteInput = note!.body.position.y
+    const baseline = this.receptorBody!.getChildren()[0].body.position.y
+    note?.setState(3)
+    this.map!.killAndHide(note!);
+    this.judgeNote(noteInput, baseline)
   }
-  judgeNote(note: number, baseline: number) {
-    // in this function, judge the note and add score based on the placement of the note as well as the user press
+  judgeNote(noteY: number, baseline: number) {
+    const judgement = Math.abs(noteY - baseline);
+    if (judgement >= 100) {
+      return 50;
+    } else if (judgement >= 75) {
+      return 100;
+    } else if (judgement >= 50) {
+      return 200;
+    } else if (judgement >= 15) {
+      return 300;
+    }
   }
 
   pressNote(column: boolean, note: any) {
@@ -157,5 +241,5 @@ export default class GameplayScene extends Scene {
 
         // console.log(result);
     }                
-}
+  }
 }

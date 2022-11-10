@@ -1,6 +1,6 @@
-import { AUTO, Game, Types, Scale } from "phaser";
-import MenuScene from "./scenes/MenuScene";
-import GameplayScene from "./scenes/GameplayScene";
+import { AUTO, Game, Types, Scale } from 'phaser';
+import MenuScene from './scenes/MenuScene';
+import GameplayScene from './scenes/GameplayScene';
 
 const config: Types.Core.GameConfig = {
   type: AUTO,
@@ -14,13 +14,13 @@ const config: Types.Core.GameConfig = {
   physics: {
     default: 'arcade',
     arcade: {
-      debug: false
-    }
+      debug: false,
+    },
   },
   audio: {
     disableWebAudio: false,
   },
   scene: [GameplayScene],
-}
+};
 
-new Game(config)
+new Game(config);
