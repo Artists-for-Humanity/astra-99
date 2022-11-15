@@ -1,7 +1,6 @@
 import { Scene, GameObjects, Types } from 'phaser';
 import DirectoryManager from '../managers/DirectoryManager';
 import Beatmap from '../managers/BeatmapManager';
-import { doesNotThrow } from 'node:assert';
 
 const directories = new DirectoryManager();
 
@@ -64,36 +63,23 @@ export default class GameplayScene extends Scene {
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     directories.getImages('gameplay').forEach(image => {
         try {
-            this.load.image(image.name, new URL(`http://192.168.4.133:8080/assets/images/${image.category}/${image.name}.png`, import.meta.url).href);
+            this.load.image(image.name, new URL(`http://127.0.0.1:8080/assets/images/${image.category}/${image.name}.png`, import.meta.url).href);
         } catch (err) {
             console.log(err);
         }
     });
     directories.getImages('menu').forEach(image => {
         try {
-            this.load.image(image.name, new URL(`http://192.168.4.133:8080/assets/images/${image.category}/${image.name}.png`, import.meta.url).href);
+            this.load.image(image.name, new URL(`http://127.0.0.1:8080/assets/images/${image.category}/${image.name}.png`, import.meta.url).href);
         } catch (err) {
             console.log(err);
         }
     });
     this.load.plugin('rexcontainerliteplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexcontainerliteplugin.min.js', true);
     // const beatmap = new Beatmap()
-    this.load.text('beatmap', new URL('http://192.168.4.133:8080/assets/beatmaps/beatmap.osu').href);
-    const audioCheck = () => {
-      window.AudioContext = window.AudioContext
-      if (window.AudioContext){
-        return true;
-      }
-      else {
-        return false;
-      }
-    };
-
-    if (audioCheck()) {
-      new window.AudioContext();
-    }
-    this.load.audio('beatmap-audio', new URL('http://192.168.4.133:8080/assets/beatmaps/001/audio.mp3').href)
-    this.sound.volume
+    this.load.text('beatmap', new URL(`http://127.0.0.1:8080/assets/beatmaps/beatmap.osu`).href);
+    this.load.audio('beatmap-audio', new URL(`http://127.0.0.1:8080/assets/beatmaps/001/audio.mp3`).href)
+    
 }
   create() {
     this.sound.add('beatmap-audio');
@@ -128,7 +114,7 @@ export default class GameplayScene extends Scene {
     // BUILDING BEATMAPS
     const noteSet = this.beatmap.map(note => {
         const col = (this.components!.getByName('chutes') as GameObjects.Container).getByName('chute-'+ note.column.toString()) as GameObjects.Sprite;
-        const res = this.add.sprite(col.x, (note.startTime * -1), 'note');
+        const res = this.add.sprite(col.x, ((note.startTime * -1.28) - 930), 'note');
         res.setName(`note-${note.startTime}`);
         return res;
     });
@@ -138,44 +124,52 @@ export default class GameplayScene extends Scene {
     this.map.setDepth(1);
     FullTrack.setDepth(0);
 
+    this.physics.pause();
+
     // this.map!.children.iterate(note => {
     //     this.physics.add.overlap(note, Receptors, () => {
     //         console.log('hit');
     //     }, undefined, this)
     // })
     this.receptorBody = Receptors;
-
+    
     // adding text
     this.gameData.accuracy.text = this.add.text(innerWidth - 250, 100, '100.0%', {
       fontSize: '64px',
       fontFamily: 'Arial',
+      align: 'right',
       fontStyle: 'italic'
     });
 
     this.gameData.score.text = this.add.text(innerWidth - 300, 16, '0000000', {
       fontSize: '72px',
       fontFamily: 'Arial',
+      align: 'right',
       fontStyle: 'italic'
     });
 
     this.gameData.combo.text = this.add.text(innerWidth - 250, innerHeight - 100, '0x', {
       fontSize: '64px',
       fontFamily: 'Arial',
+      align: 'right',
       fontStyle: 'italic'
     });
-    this.physics.pause()
+    
     if (window.AudioContext) {
-      this.sound.play('beatmap-audio');
+      this.physics.resume();
     }
 
-    this.gameData.scrollSpeed = Math.abs(this.receptorBody!.getChildren()[0].body.position.y - this.map!.getChildren()[0].body.position.y) / 750
+    this.gameData.scrollSpeed = Math.abs(this.receptorBody!.getChildren()[0].body.position.y - this.map!.getChildren()[0].body.position.y - 930) / 1000
     console.log(this.gameData.scrollSpeed)
+    setTimeout(() => this.sound.play('beatmap-audio'), 930);
 }
   update() {
-    this.map!.incY(this.gameData.scrollSpeed);
+    this.map!.incY(22);
 
+    this.map!.getChildren().filter(c => c.body.position.y > innerHeight).forEach(c => {
+      this.map!.remove(c);
+    });
     const referenceKeys = ['Q', "W", "O", "P"]
-
 
     for (const key of referenceKeys) {
         this.input.keyboard.on('keydown-' + key, () => {
@@ -206,14 +200,17 @@ export default class GameplayScene extends Scene {
 
   trackAndDeleteNote(notes: Phaser.Physics.Arcade.Group | undefined, receptor: any) {
     const note = notes!.getChildren().find(n => {
-        return this.physics.overlap(n, receptor);
-    })
+      return this.physics.overlap(n, receptor);
+    });
 
     if(note!.state === 3) return; // this only calls the deletion and judgement once
     const noteInput = note!.body.position.y
     const baseline = this.receptorBody!.getChildren()[0].body.position.y
     note?.setState(3)
+    // note!.body.gameObject
+    
     this.map!.killAndHide(note!);
+    this.map!.remove(note!);
     this.judgeNote(noteInput, baseline)
   }
   judgeNote(noteY: number, baseline: number) {
@@ -241,5 +238,5 @@ export default class GameplayScene extends Scene {
 
         // console.log(result);
     }                
-  }
+}
 }
