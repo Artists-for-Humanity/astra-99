@@ -6,10 +6,9 @@ const config: Types.Core.GameConfig = {
   type: AUTO,
   backgroundColor: '#1c0d36',
   scale: {
-    mode: Scale.CENTER_BOTH,
     parent: 'game',
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: 1600,
+    height: 900,
   },
   physics: {
     default: 'arcade',

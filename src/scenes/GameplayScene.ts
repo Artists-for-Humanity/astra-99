@@ -1,13 +1,14 @@
 import { Scene, GameObjects, Types } from 'phaser';
 import DirectoryManager from '../managers/DirectoryManager';
 import Beatmap from '../managers/BeatmapManager';
+import Parser from 'osu-parser';
 
 const directories = new DirectoryManager();
 
 const utils = {
     center: {
-        x: (window.innerWidth / 2),
-        y: (window.innerHeight / 2),
+        x: (1600 / 2),
+        y: (900 / 2),
     },
 }
 
@@ -60,6 +61,7 @@ export default class GameplayScene extends Scene {
     }
   }
   preload() {
+
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     directories.getImages('gameplay').forEach(image => {
         try {
@@ -77,20 +79,33 @@ export default class GameplayScene extends Scene {
     });
     this.load.plugin('rexcontainerliteplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexcontainerliteplugin.min.js', true);
     // const beatmap = new Beatmap()
-    this.load.text('beatmap', new URL(`http://127.0.0.1:8080/assets/beatmaps/beatmap.osu`).href);
-    this.load.audio('beatmap-audio', new URL(`http://127.0.0.1:8080/assets/beatmaps/001/audio.mp3`).href)
-    
+    this.load.text('beatmap', new URL('http://127.0.0.1:8080/assets/beatmaps/beatmap.osu').href);
+    const audioCheck = () => {
+      window.AudioContext = window.AudioContext
+      if (window.AudioContext){
+        return true;
+      }
+      else {
+        return false;
+      }
+    };
+
+    if (audioCheck()) {
+      new window.AudioContext();
+    }
+    this.load.audio('beatmap-audio', new URL('http://127.0.0.1:8080/assets/beatmaps/001/audio.mp3').href)
+    this.sound.volume
 }
   create() {
     this.sound.add('beatmap-audio');
     this.beatmap = Beatmap(this.cache.text.get('beatmap'));
+    console.log(Parser.parseContent(this.cache.text.get('beatmap')));
     this.keybinds = this.input.keyboard.addKeys('Q,W,O,P');
-    // this.add.image((window.innerWidth / 2), (window.innerHeight - (999 / 2)), 'track');
+    // this.add.image((window.this.game.canvas.height / 2), (window.this.game.canvas.height - (999 / 2)), 'track');
     // this.add.sprite()
 
     // building the rhythm game track and the chutes for the notes
-    const Track = this.add.sprite((window.innerWidth / 2), (window.innerHeight - (999 / 2)), 'track');
-    Track.setState('unpressed')
+    const Track = this.add.sprite((this.game.canvas.width / 2), (this.game.canvas.height / 2) - (99 / 4), 'track');
     const chuteMapping = [Track.x - 199, Track.x - 66, Track.x + 66, Track.x + 199]
     const Chute = [this.add.sprite((Track.x - 200), utils.center.y, 'chute')];
     const Chutes = this.add.container(0, 0, [0, 1, 2, 3].map(column => {
@@ -100,7 +115,7 @@ export default class GameplayScene extends Scene {
         return NextChute;
     }));
     const Receptors = this.physics.add.staticGroup([0, 1, 2, 3].map(column => {
-        const receptor = this.physics.add.sprite(chuteMapping[column], innerHeight - 150, 'note-receptor');
+        const receptor = this.physics.add.sprite(chuteMapping[column], this.game.canvas.height - 150, 'note-receptor');
         receptor.setName('receptor-' + column.toString());
         return receptor;
     }));
@@ -114,7 +129,7 @@ export default class GameplayScene extends Scene {
     // BUILDING BEATMAPS
     const noteSet = this.beatmap.map(note => {
         const col = (this.components!.getByName('chutes') as GameObjects.Container).getByName('chute-'+ note.column.toString()) as GameObjects.Sprite;
-        const res = this.add.sprite(col.x, ((note.startTime * -1.28) - 930), 'note');
+        const res = this.add.sprite(col.x, (note.startTime * -1.21) - 930, 'note').setScale(0.95);
         res.setName(`note-${note.startTime}`);
         return res;
     });
@@ -124,52 +139,45 @@ export default class GameplayScene extends Scene {
     this.map.setDepth(1);
     FullTrack.setDepth(0);
 
-    this.physics.pause();
-
     // this.map!.children.iterate(note => {
     //     this.physics.add.overlap(note, Receptors, () => {
     //         console.log('hit');
     //     }, undefined, this)
     // })
     this.receptorBody = Receptors;
-    
+
     // adding text
-    this.gameData.accuracy.text = this.add.text(innerWidth - 250, 100, '100.0%', {
+    this.gameData.accuracy.text = this.add.text(this.game.canvas.width - 250, 100, '100.0%', {
       fontSize: '64px',
       fontFamily: 'Arial',
-      align: 'right',
       fontStyle: 'italic'
     });
 
-    this.gameData.score.text = this.add.text(innerWidth - 300, 16, '0000000', {
+    this.gameData.score.text = this.add.text(this.game.canvas.width - 300, 16, '0000000', {
       fontSize: '72px',
       fontFamily: 'Arial',
-      align: 'right',
       fontStyle: 'italic'
     });
 
-    this.gameData.combo.text = this.add.text(innerWidth - 250, innerHeight - 100, '0x', {
+    this.gameData.combo.text = this.add.text(this.game.canvas.width - 250, this.game.canvas.height - 100, '0x', {
       fontSize: '64px',
       fontFamily: 'Arial',
-      align: 'right',
       fontStyle: 'italic'
     });
-    
+    this.physics.pause()
     if (window.AudioContext) {
+      this.sound.play('beatmap-audio');
       this.physics.resume();
     }
 
-    this.gameData.scrollSpeed = Math.abs(this.receptorBody!.getChildren()[0].body.position.y - this.map!.getChildren()[0].body.position.y - 930) / 1000
+    this.gameData.scrollSpeed = Math.abs(this.receptorBody!.getChildren()[0].body.position.y - this.map!.getChildren()[0].body.position.y) / 750
     console.log(this.gameData.scrollSpeed)
-    setTimeout(() => this.sound.play('beatmap-audio'), 930);
 }
   update() {
-    this.map!.incY(22);
+    this.map!.incY(21);
 
-    this.map!.getChildren().filter(c => c.body.position.y > innerHeight).forEach(c => {
-      this.map!.remove(c);
-    });
     const referenceKeys = ['Q', "W", "O", "P"]
+
 
     for (const key of referenceKeys) {
         this.input.keyboard.on('keydown-' + key, () => {
@@ -179,7 +187,6 @@ export default class GameplayScene extends Scene {
             if (this.physics.overlap(this.map!, this.receptorBody!.getChildren().find(r => r.name === `receptor-${column}`))) {
                 const recCol = this.receptorBody!.getChildren().find(r => r.name === `receptor-${column}`)
                 this.trackAndDeleteNote(this.map!, recCol);
-                return;
             }
 
         });
@@ -196,21 +203,19 @@ export default class GameplayScene extends Scene {
         }
     });
     
+    
   }
 
   trackAndDeleteNote(notes: Phaser.Physics.Arcade.Group | undefined, receptor: any) {
-    const note = notes!.getChildren().find(n => {
-      return this.physics.overlap(n, receptor);
+    const note = notes!.getChildren().find((n: GameObjects.GameObject) => {
+        return this.physics.overlap(n, receptor);
     });
 
     if(note!.state === 3) return; // this only calls the deletion and judgement once
     const noteInput = note!.body.position.y
     const baseline = this.receptorBody!.getChildren()[0].body.position.y
-    note?.setState(3)
-    // note!.body.gameObject
-    
-    this.map!.killAndHide(note!);
-    this.map!.remove(note!);
+    note?.setState(3);
+    this.map!.remove(note!, true, true);
     this.judgeNote(noteInput, baseline)
   }
   judgeNote(noteY: number, baseline: number) {
@@ -238,5 +243,5 @@ export default class GameplayScene extends Scene {
 
         // console.log(result);
     }                
-}
+  }
 }

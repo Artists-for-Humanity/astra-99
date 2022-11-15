@@ -9,6 +9,7 @@ specifiers:
   '@typescript-eslint/parser': ^5.20.0
   eslint: ^8.14.0
   http-server: ^14.1.1
+  osu-parser: ^0.3.3
   parcel: ^2.7.0
   parcel-plugin-static-files-copy: ^2.6.0
   parcel-reporter-clean-dist: ^1.0.4
@@ -22,6 +23,7 @@ specifiers:
 dependencies:
   '@types/webfontloader': 1.6.35
   http-server: 14.1.1
+  osu-parser: 0.3.3
   phaser: 3.55.2
   webfontloader: 1.6.28
 
@@ -2293,6 +2295,10 @@ packages:
   /ordered-binary/1.4.0:
     resolution: {integrity: sha512-EHQ/jk4/a9hLupIKxTfUsQRej1Yd/0QLQs3vGvIqg5ZtCYSzNhkzHoZc7Zf4e4kUlDaC3Uw8Q/1opOLNN2OKRQ==}
     dev: true
+
+  /osu-parser/0.3.3:
+    resolution: {integrity: sha512-XMNV0He6W3PEQQrrohIHT4tikFq4soDBEPr0fcR/74ivr8l+7nH7of/VPI/iu6g9JtiuXZ6fp3muQOh07AwdfA==}
+    dev: false
 
   /p-limit/3.1.0:
     resolution: {integrity: sha512-TYOanM3wGwNGsZN2cVTYPArw454xnXj5qmWF1bEoAc4+cU/ol7GVh7odevjp1FNHduHc3KZMcFduxU5Xc6uJRQ==}

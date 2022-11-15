@@ -30,6 +30,7 @@
   "dependencies": {
     "@types/webfontloader": "^1.6.35",
     "http-server": "^14.1.1",
+    "osu-parser": "^0.3.3",
     "phaser": "^3.55.2",
     "webfontloader": "^1.6.28"
   },

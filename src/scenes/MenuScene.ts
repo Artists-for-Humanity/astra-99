@@ -8,15 +8,15 @@ export default class MenuScene extends Scene {
   preload() {
     this.load.script(
       'webfont',
-      'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'
+      'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js',
     );
     this.load.image(
       'menu',
-      new URL('../assets/images/menu-option.png', import.meta.url).href
+      new URL('../assets/images/menu-option.png', import.meta.url).href,
     );
     this.load.image(
       'menu-selected',
-      new URL('../assets/images/menu-option-selected.png', import.meta.url).href
+      new URL('../assets/images/menu-option-selected.png', import.meta.url).href,
     );
   }
   create() {
@@ -36,5 +36,7 @@ export default class MenuScene extends Scene {
     });
     this.add.image(window.innerWidth - 250, 225, 'menu').scaleX = 2;
   }
-  update() {}
+  update() {
+    console.log('blah blah update');
+  }
 }
