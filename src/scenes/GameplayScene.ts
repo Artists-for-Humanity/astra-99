@@ -1,41 +1,45 @@
-import { Scene, GameObjects, Types } from 'phaser';
+import { Scene, GameObjects, Sound } from 'phaser';
 import DirectoryManager from '../managers/DirectoryManager';
 import Beatmap from '../managers/BeatmapManager';
-import Parser from 'osu-parser';
+// import Parser from 'osu-parser';
 
 const directories = new DirectoryManager();
 
 const utils = {
-    center: {
-        x: (1600 / 2),
-        y: (900 / 2),
-    },
-}
+  center: {
+    x: 1600 / 2,
+    y: 900 / 2,
+  },
+};
 
 type BeatmapObj = {
-    type: string;
-    startTime: number;
-    column: number;
-    endTime: number;
-}[]
+  type: string;
+  startTime: number;
+  column: number;
+  endTime: number;
+}[];
 
-type NumberText = {text?: Phaser.GameObjects.Text, value: number}
+type NumberText = { text?: Phaser.GameObjects.Text; value: number };
 interface GameData {
-  scrollSpeed: number,
-  score: NumberText,
-  accuracy: NumberText,
-  maxCombo: NumberText,
-  combo: NumberText,
+  baseline: number;
+  scrollSpeed: number;
+  score: NumberText;
+  accuracy: NumberText & { arrayVersion: number[] };
+  maxCombo: NumberText;
+  combo: NumberText;
 }
 export default class GameplayScene extends Scene {
-    [x: string]: any;
-    keybinds: unknown
-    components?: GameObjects.Container
-    beatmap?: BeatmapObj
-    map?: Phaser.Physics.Arcade.Group
-    receptorBody?: Phaser.Physics.Arcade.StaticGroup
-    timingPoints: {time: number, bpm: number}[] // will work on this later to improve syncing capabilities
-    gameData: GameData
+  [x: string]: any;
+  beatmapAudio?: Sound.BaseSound;
+  keybinds: unknown;
+  menuControls: unknown;
+  components?: GameObjects.Container;
+  beatmap?: BeatmapObj;
+  map?: Phaser.Physics.Arcade.Group;
+  receptorBody?: Phaser.Physics.Arcade.StaticGroup;
+  timingPoints: { time: number; bpm: number }[]; // will work on this later to improve syncing capabilities
+  gameData: GameData;
+  isActiveGameplay: boolean;
   constructor() {
     super({ key: 'GameplayScene' });
     this.keybinds;
@@ -45,12 +49,14 @@ export default class GameplayScene extends Scene {
     this.receptorBody;
     this.timingPoints = []; // to be improved
     this.gameData = {
+      baseline: 0,
       scrollSpeed: 10,
       score: {
         value: 0,
       },
       accuracy: {
         value: 100.0,
+        arrayVersion: [],
       },
       maxCombo: {
         value: 0,
@@ -58,82 +64,96 @@ export default class GameplayScene extends Scene {
       combo: {
         value: 0,
       },
-    }
+    };
+    this.isActiveGameplay = false;
+    this.menuControls;
+    this.beatmapAudio;
   }
   preload() {
-
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
-    directories.getImages('gameplay').forEach(image => {
-        try {
-            this.load.image(image.name, new URL(`http://127.0.0.1:8080/assets/images/${image.category}/${image.name}.png`, import.meta.url).href);
-        } catch (err) {
-            console.log(err);
-        }
-    });
-    directories.getImages('menu').forEach(image => {
-        try {
-            this.load.image(image.name, new URL(`http://127.0.0.1:8080/assets/images/${image.category}/${image.name}.png`, import.meta.url).href);
-        } catch (err) {
-            console.log(err);
-        }
-    });
-    this.load.plugin('rexcontainerliteplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexcontainerliteplugin.min.js', true);
-    // const beatmap = new Beatmap()
-    this.load.text('beatmap', new URL('http://127.0.0.1:8080/assets/beatmaps/beatmap.osu').href);
-    const audioCheck = () => {
-      window.AudioContext = window.AudioContext
-      if (window.AudioContext){
-        return true;
+    directories.getImages('gameplay').forEach((image) => {
+      try {
+        this.load.image(
+          image.name,
+          new URL(`http://127.0.0.1:8080/assets/images/${image.category}/${image.name}.png`, import.meta.url).href,
+        );
+      } catch (err) {
+        console.log(err);
       }
-      else {
+    });
+    directories.getImages('menu').forEach((image) => {
+      try {
+        this.load.image(
+          image.name,
+          new URL(`http://127.0.0.1:8080/assets/images/${image.category}/${image.name}.png`, import.meta.url).href,
+        );
+      } catch (err) {
+        console.log(err);
+      }
+    });
+    this.load.plugin(
+      'rexcontainerliteplugin',
+      'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexcontainerliteplugin.min.js',
+      true,
+    );
+    // const beatmap = new Beatmap()
+    this.load.text('beatmap', new URL('http://127.0.0.1:8080/assets/beatmaps/001/beatmap.osu').href); // will be loaded dynamically soon
+    const audioCheck = () => {
+      if (window.AudioContext) {
+        return true;
+      } else {
         return false;
       }
     };
 
-    if (audioCheck()) {
+    if (!audioCheck()) {
       new window.AudioContext();
     }
-    this.load.audio('beatmap-audio', new URL('http://127.0.0.1:8080/assets/beatmaps/001/audio.mp3').href)
-    this.sound.volume
-}
+    this.load.audio('beatmap-audio', new URL('http://127.0.0.1:8080/assets/beatmaps/001/audio.mp3').href);
+  }
   create() {
-    this.sound.add('beatmap-audio');
+    this.beatmapAudio = this.sound.add('beatmap-audio');
     this.beatmap = Beatmap(this.cache.text.get('beatmap'));
-    console.log(Parser.parseContent(this.cache.text.get('beatmap')));
     this.keybinds = this.input.keyboard.addKeys('Q,W,O,P');
-    // this.add.image((window.this.game.canvas.height / 2), (window.this.game.canvas.height - (999 / 2)), 'track');
-    // this.add.sprite()
+    this.menuControls = this.input.keyboard.addKey('SPACE');
 
     // building the rhythm game track and the chutes for the notes
-    const Track = this.add.sprite((this.game.canvas.width / 2), (this.game.canvas.height / 2) - (99 / 4), 'track');
-    const chuteMapping = [Track.x - 199, Track.x - 66, Track.x + 66, Track.x + 199]
-    const Chute = [this.add.sprite((Track.x - 200), utils.center.y, 'chute')];
-    const Chutes = this.add.container(0, 0, [0, 1, 2, 3].map(column => {
+    const Track = this.add.sprite(this.game.canvas.width / 2, this.game.canvas.height / 2 - 99 / 4, 'track');
+    const chuteMapping = [Track.x - 199, Track.x - 66, Track.x + 66, Track.x + 199];
+    const Chutes = this.add.container(
+      0,
+      0,
+      [0, 1, 2, 3].map((column) => {
         // each chute within the columns is referred to as its own chute ex. chute-0
-        const NextChute = this.add.sprite((chuteMapping[column]), utils.center.y, 'chute');
+        const NextChute = this.add.sprite(chuteMapping[column], utils.center.y, 'chute');
         NextChute.setName('chute-' + column.toString());
         return NextChute;
-    }));
-    const Receptors = this.physics.add.staticGroup([0, 1, 2, 3].map(column => {
+      }),
+    );
+    const Receptors = this.physics.add.staticGroup(
+      [0, 1, 2, 3].map((column) => {
         const receptor = this.physics.add.sprite(chuteMapping[column], this.game.canvas.height - 150, 'note-receptor');
         receptor.setName('receptor-' + column.toString());
         return receptor;
-    }));
-    
-    Chutes.setName('chutes')
+      }),
+    );
+
+    Chutes.setName('chutes');
     const FullTrack = this.add.container(0, 0, [Chutes, Track]);
 
     FullTrack.moveBelow(Chutes, Track);
-    this.components = FullTrack
+    this.components = FullTrack;
 
     // BUILDING BEATMAPS
-    const noteSet = this.beatmap.map(note => {
-        const col = (this.components!.getByName('chutes') as GameObjects.Container).getByName('chute-'+ note.column.toString()) as GameObjects.Sprite;
-        const res = this.add.sprite(col.x, (note.startTime * -1.21) - 930, 'note').setScale(0.95);
-        res.setName(`note-${note.startTime}`);
-        return res;
+    const noteSet = this.beatmap.map((note) => {
+      const col = (this.components!.getByName('chutes') as GameObjects.Container).getByName(
+        'chute-' + note.column.toString(),
+      ) as GameObjects.Sprite;
+      const res = this.add.sprite(col.x, note.startTime * -1.21, 'note').setScale(0.95);
+      res.setName(`note-${note.startTime}`);
+      return res;
     });
-    this.map = this.physics.add.group(noteSet, {name: 'beatmapNotes'});
+    this.map = this.physics.add.group(noteSet, { name: 'beatmapNotes' });
 
     Receptors.setDepth(2);
     this.map.setDepth(1);
@@ -150,98 +170,182 @@ export default class GameplayScene extends Scene {
     this.gameData.accuracy.text = this.add.text(this.game.canvas.width - 250, 100, '100.0%', {
       fontSize: '64px',
       fontFamily: 'Arial',
-      fontStyle: 'italic'
+      fontStyle: 'italic',
+      align: 'right',
     });
 
     this.gameData.score.text = this.add.text(this.game.canvas.width - 300, 16, '0000000', {
       fontSize: '72px',
       fontFamily: 'Arial',
-      fontStyle: 'italic'
+      fontStyle: 'italic',
+      align: 'right',
     });
 
     this.gameData.combo.text = this.add.text(this.game.canvas.width - 250, this.game.canvas.height - 100, '0x', {
       fontSize: '64px',
       fontFamily: 'Arial',
-      fontStyle: 'italic'
+      fontStyle: 'italic',
+      align: 'right',
     });
-    this.physics.pause()
-    if (window.AudioContext) {
+    this.physics.pause();
+    if (window.AudioContext && this.isActiveGameplay) {
       this.sound.play('beatmap-audio');
       this.physics.resume();
     }
 
-    this.gameData.scrollSpeed = Math.abs(this.receptorBody!.getChildren()[0].body.position.y - this.map!.getChildren()[0].body.position.y) / 750
-    console.log(this.gameData.scrollSpeed)
-}
+    this.gameData.scrollSpeed =
+      Math.abs(this.receptorBody!.getChildren()[0].body.position.y - this.map!.getChildren()[0].body.position.y) / 750;
+
+    this.gameData.baseline = this.physics.add
+      .staticSprite(800, this.receptorBody.getChildren()[0].body.position.y + 40.75, 'baseline-calibrator')
+      .setVisible(false).body.position.y;
+    console.log(this.gameData.scrollSpeed);
+
+    this.beatmapAudio.play();
+    this.beatmapAudio.pause();
+  }
   update() {
-    this.map!.incY(21);
+    if (this.isActiveGameplay) {
+      this.map!.incY(21);
 
-    const referenceKeys = ['Q', "W", "O", "P"]
+      this.map!.getChildren()
+        .filter((child) => child.body.position.y > this.game.canvas.height)
+        .forEach((missedNote) => {
+          this.map!.remove(missedNote, true, true);
+          this.judgeNote(0, this.gameData.baseline);
+        });
 
+      const referenceKeys = ['Q', 'W', 'O', 'P'];
 
-    for (const key of referenceKeys) {
+      for (const key of referenceKeys) {
         this.input.keyboard.on('keydown-' + key, () => {
-            const column = referenceKeys.indexOf(key);
-            (this.components!.getByName('chutes') as GameObjects.Container).getByName('chute-' + column.toString()).setState(1);
+          const column = referenceKeys.indexOf(key);
+          (this.components!.getByName('chutes') as GameObjects.Container)
+            .getByName('chute-' + column.toString())
+            .setState(1);
 
-            if (this.physics.overlap(this.map!, this.receptorBody!.getChildren().find(r => r.name === `receptor-${column}`))) {
-                const recCol = this.receptorBody!.getChildren().find(r => r.name === `receptor-${column}`)
-                this.trackAndDeleteNote(this.map!, recCol);
-            }
-
+          if (
+            this.physics.overlap(
+              this.map!,
+              this.receptorBody!.getChildren().find((r) => r.name === `receptor-${column}`),
+            )
+          ) {
+            const recCol = this.receptorBody!.getChildren().find((r) => r.name === `receptor-${column}`);
+            this.deleteNote(this.map!, recCol);
+          }
         });
         this.input.keyboard.on('keyup-' + key, () => {
-            const column = referenceKeys.indexOf(key);
-            (this.components!.getByName('chutes') as GameObjects.Container).getByName('chute-' + column.toString()).setState(0);
-        })
-    }
-    (this.components!.getByName('chutes') as GameObjects.Container).iterate((chute: GameObjects.Sprite) => { // animate each chute on press
+          const column = referenceKeys.indexOf(key);
+          (this.components!.getByName('chutes') as GameObjects.Container)
+            .getByName('chute-' + column.toString())
+            .setState(0);
+        });
+      }
+      (this.components!.getByName('chutes') as GameObjects.Container).iterate((chute: GameObjects.Sprite) => {
+        // animate each chute on press
         if (chute.state === 1) {
-            chute.setTexture('chute-enabled');
+          chute.setTexture('chute-enabled');
         } else {
-            chute.setTexture('chute');
+          chute.setTexture('chute');
         }
-    });
-    
-    
+      });
+    } else {
+      this.input.keyboard.on('keydown-SPACE', () => {
+        this.isActiveGameplay = true;
+        this.beatmapAudio?.play();
+        this.physics.resume();
+      });
+    }
   }
 
-  trackAndDeleteNote(notes: Phaser.Physics.Arcade.Group | undefined, receptor: any) {
+  deleteNote(notes: Phaser.Physics.Arcade.Group | undefined, receptor: any) {
     const note = notes!.getChildren().find((n: GameObjects.GameObject) => {
-        return this.physics.overlap(n, receptor);
+      return this.physics.overlap(n, receptor);
     });
 
-    if(note!.state === 3) return; // this only calls the deletion and judgement once
-    const noteInput = note!.body.position.y
-    const baseline = this.receptorBody!.getChildren()[0].body.position.y
+    if (note!.state === 3) return; // this only calls the deletion and judgement once
+    const noteInput = note!.body.position.y;
+    const baseline = this.gameData.baseline;
+
     note?.setState(3);
     this.map!.remove(note!, true, true);
-    this.judgeNote(noteInput, baseline)
+
+    // initiates the chain of judging notes
+    this.judgeNote(noteInput, baseline);
   }
+
   judgeNote(noteY: number, baseline: number) {
     const judgement = Math.abs(noteY - baseline);
-    if (judgement >= 100) {
-      return 50;
-    } else if (judgement >= 75) {
-      return 100;
-    } else if (judgement >= 50) {
-      return 200;
-    } else if (judgement >= 15) {
-      return 300;
-    }
+    const result = (() => {
+      // returning miss notes
+      if (noteY === 0) {
+        return 0;
+      }
+      // actual judgement for non-missed notes
+      if (judgement >= 200) {
+        return 50;
+      } else if (judgement >= 100) {
+        return 100;
+      } else if (judgement >= 75) {
+        return 200;
+      } else if (judgement >= 0) {
+        return 300;
+      } else {
+        return 0;
+      }
+    })();
+    this.updateData(result);
   }
 
-  pressNote(column: boolean, note: any) {
-    if(column) {
-        const hitNote = note;
-        console.log(hitNote);
+  updateData(judgement: number) {
+    this.gameData.score.value += judgement;
+    this.gameData.score.text!.setText(`${this.gameData.score.value}`);
 
-        // const result = {
-        //     noteY: hitNote.body.position.y
-        // }
-        // this.map!.killAndHide(hitNote!);
+    // resets combo if it's a miss, otherwise increase the score
+    if (judgement == 0) {
+      this.gameData.combo.value = 0;
+    } else {
+      this.gameData.combo.value++;
+    }
 
-        // console.log(result);
-    }                
+    this.gameData.combo.text!.setText(`${this.gameData.combo.value}x`);
+
+    // updates the maxcombo if the current combo is more than the original
+    if (this.gameData.maxCombo.value < this.gameData.combo.value) {
+      this.gameData.maxCombo.value = this.gameData.combo.value;
+    }
+
+    // updating the accuracy
+    const acc = (j: number) => {
+      switch (j) {
+        case 0:
+          return 0;
+        case 50:
+          return (1 / 6) * 100;
+        case 100:
+          return (1 / 3) * 100;
+        case 200:
+          return (2 / 3) * 100;
+        case 300:
+          return 100;
+        default:
+          return 0;
+      }
+    };
+
+    this.gameData.accuracy.arrayVersion.push(acc(judgement));
+
+    // averages out the accuracy
+    this.gameData.accuracy.value =
+      this.gameData.accuracy.arrayVersion.reduce((a, b) => a + b) / this.gameData.accuracy.arrayVersion.length;
+
+    this.gameData.accuracy.text?.setText(`${this.gameData.accuracy.value.toFixed(2)}%`);
+    // {
+    //   scrollSpeed: number,
+    //   score: NumberText,
+    //   accuracy: NumberText,
+    //   maxCombo: NumberText,
+    //   combo: NumberText,
+    // }
   }
 }

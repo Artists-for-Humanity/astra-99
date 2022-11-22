@@ -1,26 +1,7 @@
-// read file from beatmap osu file,
-// splice all of the data into according pieces by the "[" in each category
-// get the one titled "map data" or wtv, just the section that has the data of each individual key
-// split by \n and get each individual circle, map it to the time as a Note { type: circle | slider } etc
-import * as fs from 'node:fs';
-
-interface Note {
-  type: 'circle' | 'slider';
-  startTime: number;
-  column: number;
-  endTime?: number;
-}
-
 const _notes: string[] = [];
 const _metadata: string[] = [];
 let section = '';
 
-type NoteSet = {
-  type: 'circle' | 'slider';
-  startTime: number;
-  column: number;
-  endTime: number;
-}[];
 function getColumn(column: number) {
   switch (column) {
     case 64:

@@ -1,7 +1,11 @@
 {
-  "trailingComma": "es5",
+  "parser": "typescript",
+  "trailingComma": "all",
+  "printWidth": 120,
   "tabWidth": 2,
   "semi": true,
+  "useTabs": false,
   "singleQuote": true,
-  "arrowParens": "always"
+  "arrowParens": "always",
+  "bracketSpacing": true
 }
