@@ -1,7 +1,6 @@
 import { Scene, GameObjects, Sound } from 'phaser';
 import DirectoryManager from '../managers/DirectoryManager';
 import Beatmap from '../managers/BeatmapManager';
-// import Parser from 'osu-parser';
 
 const directories = new DirectoryManager();
 
@@ -37,7 +36,7 @@ export default class GameplayScene extends Scene {
   beatmap?: BeatmapObj;
   map?: Phaser.Physics.Arcade.Group;
   receptorBody?: Phaser.Physics.Arcade.StaticGroup;
-  timingPoints: { time: number; bpm: number }[]; // will work on this later to improve syncing capabilities
+  timingPoints: { time: number; bpm: number }[]; // todo: improve syncing
   gameData: GameData;
   isActiveGameplay: boolean;
   constructor() {
@@ -47,7 +46,7 @@ export default class GameplayScene extends Scene {
     this.beatmap;
     this.map;
     this.receptorBody;
-    this.timingPoints = []; // to be improved
+    this.timingPoints = [];
     this.gameData = {
       baseline: 0,
       scrollSpeed: 10,
@@ -91,13 +90,13 @@ export default class GameplayScene extends Scene {
         console.log(err);
       }
     });
-    this.load.plugin(
-      'rexcontainerliteplugin',
-      'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexcontainerliteplugin.min.js',
-      true,
-    );
-    // const beatmap = new Beatmap()
-    this.load.text('beatmap', new URL('http://127.0.0.1:8080/assets/beatmaps/001/beatmap.osu').href); // will be loaded dynamically soon
+    // this.load.plugin(
+    //   'rexcontainerliteplugin',
+    //   'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexcontainerliteplugin.min.js',
+    //   true,
+    // );
+    // todo: load beatmaps dynamically and select one based on user input in a different scene
+    this.load.text('beatmap', new URL('http://127.0.0.1:8080/assets/beatmaps/001/beatmap.osu').href);
     const audioCheck = () => {
       if (window.AudioContext) {
         return true;
@@ -117,7 +116,7 @@ export default class GameplayScene extends Scene {
     this.keybinds = this.input.keyboard.addKeys('Q,W,O,P');
     this.menuControls = this.input.keyboard.addKey('SPACE');
 
-    // building the rhythm game track and the chutes for the notes
+    // building the rhythm game track and the "chutes" (basically columns) for the notes
     const Track = this.add.sprite(this.game.canvas.width / 2, this.game.canvas.height / 2 - 99 / 4, 'track');
     const chuteMapping = [Track.x - 199, Track.x - 66, Track.x + 66, Track.x + 199];
     const Chutes = this.add.container(
@@ -144,7 +143,7 @@ export default class GameplayScene extends Scene {
     FullTrack.moveBelow(Chutes, Track);
     this.components = FullTrack;
 
-    // BUILDING BEATMAPS
+    // building beatmaps
     const noteSet = this.beatmap.map((note) => {
       const col = (this.components!.getByName('chutes') as GameObjects.Container).getByName(
         'chute-' + note.column.toString(),
@@ -159,11 +158,6 @@ export default class GameplayScene extends Scene {
     this.map.setDepth(1);
     FullTrack.setDepth(0);
 
-    // this.map!.children.iterate(note => {
-    //     this.physics.add.overlap(note, Receptors, () => {
-    //         console.log('hit');
-    //     }, undefined, this)
-    // })
     this.receptorBody = Receptors;
 
     // adding text
@@ -340,12 +334,5 @@ export default class GameplayScene extends Scene {
       this.gameData.accuracy.arrayVersion.reduce((a, b) => a + b) / this.gameData.accuracy.arrayVersion.length;
 
     this.gameData.accuracy.text?.setText(`${this.gameData.accuracy.value.toFixed(2)}%`);
-    // {
-    //   scrollSpeed: number,
-    //   score: NumberText,
-    //   accuracy: NumberText,
-    //   maxCombo: NumberText,
-    //   combo: NumberText,
-    // }
   }
 }
