@@ -1,6 +1,7 @@
 interface Images {
   menu: string[];
   gameplay: string[];
+  gameplayResults: string[];
 }
 
 interface Beatmap {
@@ -22,7 +23,7 @@ export default class DirectoryManager {
   beatmaps: number[];
 
   constructor() {
-    this.scenes = ['GameplayScene', 'MenuScene'];
+    this.scenes = ['GameplayScene', 'Menu'];
     this.images = {
       menu: ['menu-option', 'menu-option-selected'],
       gameplay: [
@@ -36,6 +37,7 @@ export default class DirectoryManager {
         'track',
         'chute-enabled',
       ],
+      gameplayResults: ['results-ceres', 'ranking-X', 'ranking-S', 'ranking-A', 'ranking-B', 'ranking-C', 'ranking-D' ],
     };
     this.beatmaps = [1];
   }
@@ -46,14 +48,14 @@ export default class DirectoryManager {
       return {
         name: item,
         category: category,
-        link: new URL(`http://192.168.4.133:8080/assets/images/${category}/${item}.png`, import.meta.url).href,
+        link: new URL(`http://127.0.0.1:8080/assets/images/${category}/${item}.png`, import.meta.url).href,
       };
     });
   }
 
   getScenes(): string[] {
     return this.scenes.map(
-      (scene) => new URL(`http://192.168.4.133:8080/assets/images/${scene}.ts`, import.meta.url).href,
+      (scene) => new URL(`http://127.0.0.1:8080/assets/images/${scene}.ts`, import.meta.url).href,
     );
   }
 

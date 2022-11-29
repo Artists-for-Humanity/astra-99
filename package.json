@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "npm run build",
-    "prebuild": "npx rimraf public/dist/*",
+    "start": "npm run dev",
+    "prebuild": "npx rimraf dist/*.*",
     "build": "npx parcel build public/index.html --dist-dir dist",
-    "dev": "npm run build && npx http-server ./dist",
+    "predev": "npm run build",
+    "dev": "npx http-server ./dist",
     "prettify": "npx prettier write .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -39,7 +40,7 @@
     "/dist/*.*"
   ],
   "nodemonConfig": {
-    "watch": "src/*.*",
+    "watch": "src",
     "ext": ".ts"
   }
 }
