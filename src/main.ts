@@ -1,7 +1,7 @@
 import { AUTO, Game, Scale, Types } from 'phaser';
 // import Menu from './scenes/Menu';
-import Gameplay from './scenes/Gameplay'; // will bring back after gameplayresults is implemented
-// import GameplayResults from './scenes/GameplayResults';
+import GameplayResults from './scenes/GameplayResults';
+import Gameplay from './scenes/Gameplay';
 
 const config: Types.Core.GameConfig = {
   type: AUTO,
@@ -22,7 +22,7 @@ const config: Types.Core.GameConfig = {
   audio: {
     disableWebAudio: false,
   },
-  scene: [Gameplay],
+  scene: [Gameplay, GameplayResults],
 };
 
 new Game(config);

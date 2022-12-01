@@ -40,6 +40,13 @@ export default class Gameplay extends Scene {
   gameData: GameData;
   isActiveGameplay: boolean;
   songIsOver: boolean;
+  judgements: {
+    n0: number;
+    n50: number;
+    n100: number;
+    n200: number;
+    n300: number;
+  };
   constructor() {
     super({ key: 'Gameplay' });
     this.keybinds;
@@ -65,6 +72,13 @@ export default class Gameplay extends Scene {
         value: 0,
       },
     };
+    this.judgements = {
+      n0: 0,
+      n50: 0,
+      n100: 0,
+      n200: 0,
+      n300: 0,
+    };
     this.isActiveGameplay = false;
     this.songIsOver = false;
     this.menuControls;
@@ -72,9 +86,6 @@ export default class Gameplay extends Scene {
   }
 
   preload() {
-    const ctx = (document.querySelector('#game > canvas') as HTMLCanvasElement).getContext('webgl');
-    console.log(ctx);
-
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     directories.getImages('gameplay').forEach((image) => {
       try {
@@ -120,7 +131,6 @@ export default class Gameplay extends Scene {
 
     // building the rhythm game track and the "chutes" (basically columns) for the notes
     const Track = this.add.sprite(utils.center.x, utils.center.y /* - (99 / 4) */, 'track');
-    console.log(`the stupid track height: ${Track.height}`);
     const chuteMapping = [Track.x - 199, Track.x - 66, Track.x + 66, Track.x + 199];
     const Chutes = this.add.container(
       0,
@@ -196,7 +206,6 @@ export default class Gameplay extends Scene {
     this.gameData.baseline = this.physics.add
       .staticSprite(800, this.receptorBody.getChildren()[0].body.position.y + 40.75, 'baseline-calibrator')
       .setVisible(false).body.position.y;
-    console.log(this.gameData.scrollSpeed);
 
     this.beatmapAudio.play();
     this.beatmapAudio.pause();
@@ -206,11 +215,26 @@ export default class Gameplay extends Scene {
 
   update() {
     if (this.isActiveGameplay) {
+      this.songIsOver = this.map!.children.size === 0;
+      if (this.songIsOver) {
+        this.scene.start('GameplayResults', {
+          accuracy: this.gameData.accuracy.value,
+          maxCombo: this.gameData.maxCombo.value,
+          score: this.gameData.score.value,
+          n0: this.judgements.n0,
+          n50: this.judgements.n50,
+          n100: this.judgements.n100,
+          n200: this.judgements.n200,
+          n300: this.judgements.n300,
+        });
+      }
+
       this.map!.incY(21);
 
       this.map!.getChildren()
         .filter((child) => child.body.position.y > this.game.canvas.height)
         .forEach((missedNote) => {
+          this.judgements.n0++;
           this.map!.remove(missedNote, true, true);
           this.judgeNote(0, this.gameData.baseline);
         });
@@ -288,14 +312,19 @@ export default class Gameplay extends Scene {
       }
       // actual judgement for non-missed notes
       if (judgement >= 200) {
+        this.judgements.n50++;
         return 50;
       } else if (judgement >= 100) {
+        this.judgements.n100++;
         return 100;
       } else if (judgement >= 75) {
+        this.judgements.n200++;
         return 200;
       } else if (judgement >= 0) {
+        this.judgements.n300++;
         return 300;
       } else {
+        this.judgements.n0++;
         return 0;
       }
     })();

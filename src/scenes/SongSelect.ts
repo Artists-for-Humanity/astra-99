@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 
-export default class GameplayResults extends Scene {
+export default class SongSelect extends Scene {
   constructor() {
     super({ key: 'SongSelect' });
     // constructing stuff
