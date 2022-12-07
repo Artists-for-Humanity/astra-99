@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "nodemon": "2.0.20",
     "@gatsbyjs/parcel-namer-relative-to-cwd": "^2.2.0",
     "@parcel/config-default": "^2.8.0",
     "@parcel/core": "^2.8.0",

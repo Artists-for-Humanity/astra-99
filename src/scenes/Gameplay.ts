@@ -4,12 +4,10 @@ import Beatmap from '../managers/BeatmapManager';
 
 const directories = new DirectoryManager();
 
-const utils = {
-  center: {
+const center = {
     x: 1600 / 2,
     y: 1000 / 2,
-  },
-};
+  };
 
 type BeatmapObj = {
   type: string;
@@ -28,7 +26,7 @@ interface GameData {
   combo: NumberText;
 }
 export default class Gameplay extends Scene {
-  [x: string]: any;
+  // scene members
   beatmapAudio?: Sound.BaseSound;
   keybinds: unknown;
   menuControls: unknown;
@@ -47,6 +45,7 @@ export default class Gameplay extends Scene {
     n200: number;
     n300: number;
   };
+
   constructor() {
     super({ key: 'Gameplay' });
     this.keybinds;
@@ -117,14 +116,14 @@ export default class Gameplay extends Scene {
     this.menuControls = this.input.keyboard.addKey('SPACE');
 
     // building the rhythm game track and the "chutes" (basically columns) for the notes
-    const Track = this.add.sprite(utils.center.x, utils.center.y /* - (99 / 4) */, 'track');
+    const Track = this.add.sprite(center.x, center.y /* - (99 / 4) */, 'track');
     const chuteMapping = [Track.x - 199, Track.x - 66, Track.x + 66, Track.x + 199];
     const Chutes = this.add.container(
       0,
       0,
       [0, 1, 2, 3].map((column) => {
         // each chute within the columns is referred to as its own chute ex. chute-0
-        const NextChute = this.add.sprite(chuteMapping[column], utils.center.y - 27, 'chute');
+        const NextChute = this.add.sprite(chuteMapping[column], center.y - 27, 'chute');
         NextChute.setName('chute-' + column.toString());
         return NextChute;
       }),
