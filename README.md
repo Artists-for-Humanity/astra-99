@@ -1,0 +1,4 @@
+# How to set up the project (and test things out)
+After cloning the project and doing an npm install, run `nodemon` to start the development server. Then, navigate to `127.0.0.1:8080` and feel free to test things out!
+
+Also, the keybinds for the gameplay is `Q`, `W`, `O`, and `P`. I'm working on synchronizing the beatmaps in the Conductor class, but that's still a work-in-progress. In the meantime, beatmaps `001` and `003` (Illness Lilin and Destroy the Wired) are the easier beatmaps of the three, as `002` (Let's All Love Lain) is currently only available on Insane difficulty, while the other two are on Novice and Hard.

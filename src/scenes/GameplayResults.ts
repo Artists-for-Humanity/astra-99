@@ -5,13 +5,13 @@ const directories = new DirectoryManager();
 
 export default class GameplayResults extends Scene {
   resultsData: any;
+
   constructor() {
     super({ key: 'GameplayResults' });
     this.resultsData;
     // constructing stuff
   }
   preload() {
-    this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     directories.getImages('gameplayResults').forEach((image) => {
       try {
         this.load.image(
@@ -22,17 +22,20 @@ export default class GameplayResults extends Scene {
         console.log(err);
       }
     });
-    this.load.addFile(new WebFontFile(this.load, 'Lato'));
+    this.load.addFile(new WebFontFile(this.load, 'Lato', 'google'));
   }
   init(data: any) {
     this.resultsData = data;
+    this.sound.stopAll();
   }
 
   create() {
     this.add.image(1600 / 5, 1000 / 2, 'results-ceres');
 
     const ranking = () => {
-      if (this.resultsData.accuracy >= 95) {
+      if (this.resultsData.accuracy === 100) {
+        return 'X';
+      } else if (this.resultsData.accuracy >= 95) {
         return 'S';
       } else if (this.resultsData.accuracy >= 90) {
         return 'A';
@@ -44,7 +47,7 @@ export default class GameplayResults extends Scene {
         return 'D';
       }
     };
-    this.add.image(1600 * (2 / 5), 1000 * (1 / 5), `ranking-${ranking}`).setScale(0.75);
+    this.add.image(1600 * (2 / 5), 1000 * (1 / 5), `ranking-${ranking().toUpperCase()}`).setScale(0.75);
     // ACCURACY
     this.add.text(1223, 185, `${this.resultsData.accuracy.toFixed(2)}%`, {
       color: 'white',

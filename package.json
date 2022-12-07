@@ -8,6 +8,7 @@
     "build": "npx parcel build public/index.html --dist-dir dist",
     "predev": "npm run build",
     "dev": "npx http-server ./dist",
+    "serve": "npx http-server ./dist",
     "prettify": "npx prettier write .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@gatsbyjs/parcel-namer-relative-to-cwd": "^2.2.0",
     "@parcel/config-default": "^2.8.0",
     "@parcel/core": "^2.8.0",
     "@types/node": "^18.11.9",
@@ -34,11 +36,20 @@
     "http-server": "^14.1.1",
     "osu-parser": "^0.3.3",
     "phaser": "^3.55.2",
+    "phaser3-rex-plugins": "^1.1.77",
     "webfontloader": "^1.6.28"
   },
   "cleanDistFiles": [
     "/dist/*.*"
   ],
+  "parcel-namer-rewrite": {
+    "chain": "@parcel/namer-default",
+    "hashing": "always",
+    "disable": false,
+    "rules": {
+      "(.*).css": "$1..css"
+    }
+  },
   "nodemonConfig": {
     "watch": "src",
     "ext": ".ts"

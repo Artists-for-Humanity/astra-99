@@ -87,6 +87,16 @@ export default class Gameplay extends Scene {
 
   preload() {
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
+    directories.beatmaps.forEach((map) => {
+      try {
+        this.load.audio(`beatmap-audio-${map}`, new URL(`http://127.0.0.1:8080/assets/beatmaps/${map}/audio.mp3`, import.meta.url).href).on('complete', () => {
+          console.log('done???');
+        });
+        this.load.text(`beatmap-${map}`, new URL(`http://127.0.0.1:8080/assets/beatmaps/${map}/beatmap.osu`, import.meta.url).href);
+      } catch (err) {
+        console.log(err);
+      }
+    });
     directories.getImages('gameplay').forEach((image) => {
       try {
         this.load.image(
@@ -97,35 +107,12 @@ export default class Gameplay extends Scene {
         console.log(err);
       }
     });
-    directories.getImages('menu').forEach((image) => {
-      try {
-        this.load.image(
-          image.name,
-          new URL(`http://127.0.0.1:8080/assets/images/${image.category}/${image.name}.png`, import.meta.url).href,
-        );
-      } catch (err) {
-        console.log(err);
-      }
-    });
-    // todo: load beatmaps dynamically and select one based on user input in a different scene
-    this.load.text('beatmap', new URL('http://127.0.0.1:8080/assets/beatmaps/001/beatmap.osu').href);
-    const audioCheck = () => {
-      if (window.AudioContext) {
-        return true;
-      } else {
-        return false;
-      }
-    };
-
-    if (!audioCheck()) {
-      new window.AudioContext();
-    }
-    this.load.audio('beatmap-audio', new URL('http://127.0.0.1:8080/assets/beatmaps/001/audio.mp3').href);
   }
 
-  create() {
-    this.beatmapAudio = this.sound.add('beatmap-audio');
-    this.beatmap = Beatmap(this.cache.text.get('beatmap'));
+  create(data: any) {
+    this.beatmapAudio = this.sound.add(`beatmap-audio-${data.songId}`);
+    console.log(this.cache.audio.entries);
+    this.beatmap = Beatmap(this.cache.text.get(`beatmap-${data.songId}`));
     this.keybinds = this.input.keyboard.addKeys('Q,W,O,P');
     this.menuControls = this.input.keyboard.addKey('SPACE');
 
@@ -194,10 +181,9 @@ export default class Gameplay extends Scene {
       fontStyle: 'italic',
       align: 'right',
     });
-    this.physics.pause();
     if (window.AudioContext && this.isActiveGameplay) {
-      this.sound.play('beatmap-audio');
-      this.physics.resume();
+      this.sound.play(`beatmap-audio-${data.songId}`);
+      this.beatmapAudio!.pause();
     }
 
     this.gameData.scrollSpeed =
@@ -207,9 +193,6 @@ export default class Gameplay extends Scene {
       .staticSprite(800, this.receptorBody.getChildren()[0].body.position.y + 40.75, 'baseline-calibrator')
       .setVisible(false).body.position.y;
 
-    this.beatmapAudio.play();
-    this.beatmapAudio.pause();
-
     this.events.on('shutdown', this.shutdown, this);
   }
 
@@ -217,16 +200,7 @@ export default class Gameplay extends Scene {
     if (this.isActiveGameplay) {
       this.songIsOver = this.map!.children.size === 0;
       if (this.songIsOver) {
-        this.scene.start('GameplayResults', {
-          accuracy: this.gameData.accuracy.value,
-          maxCombo: this.gameData.maxCombo.value,
-          score: this.gameData.score.value,
-          n0: this.judgements.n0,
-          n50: this.judgements.n50,
-          n100: this.judgements.n100,
-          n200: this.judgements.n200,
-          n300: this.judgements.n300,
-        });
+        this.endSong();
       }
 
       this.map!.incY(21);
@@ -276,7 +250,7 @@ export default class Gameplay extends Scene {
     } else {
       this.input.keyboard.on('keydown-SPACE', () => {
         this.isActiveGameplay = true;
-        this.beatmapAudio?.play();
+        this.beatmapAudio!.play();
         this.physics.resume();
       });
     }
@@ -374,5 +348,20 @@ export default class Gameplay extends Scene {
       this.gameData.accuracy.arrayVersion.reduce((a, b) => a + b) / this.gameData.accuracy.arrayVersion.length;
 
     this.gameData.accuracy.text?.setText(`${this.gameData.accuracy.value.toFixed(2)}%`);
+  }
+
+  endSong() {
+    this.time.delayedCall(1500, () => {
+      this.scene.start('GameplayResults', {
+        accuracy: this.gameData.accuracy.value,
+        maxCombo: this.gameData.maxCombo.value,
+        score: this.gameData.score.value,
+        n0: this.judgements.n0,
+        n50: this.judgements.n50,
+        n100: this.judgements.n100,
+        n200: this.judgements.n200,
+        n300: this.judgements.n300,
+      });
+    });
   }
 }

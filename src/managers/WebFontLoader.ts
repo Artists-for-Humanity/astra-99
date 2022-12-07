@@ -10,7 +10,7 @@ export default class WebFontFile extends Phaser.Loader.File {
 	 */
   fontNames: any[];
   service: any;
-	constructor(loader: any, fontNames: string[], service = 'google') {
+	constructor(loader: any, fontNames: string | string[], service: 'google' | 'custom') {
 		super(loader, {
 			type: 'webfont',
 			key: fontNames.toString(),

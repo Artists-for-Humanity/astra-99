@@ -2,11 +2,7 @@ interface Images {
   menu: string[];
   gameplay: string[];
   gameplayResults: string[];
-}
-
-interface Beatmap {
-  id: number;
-  fileName: string;
+  songSelect: string[];
 }
 
 interface ImageItem {
@@ -20,7 +16,7 @@ type ImageCategory = keyof Images;
 export default class DirectoryManager {
   scenes: string[];
   images: Images;
-  beatmaps: number[];
+  beatmaps: string[];
 
   constructor() {
     this.scenes = ['GameplayScene', 'Menu'];
@@ -38,8 +34,9 @@ export default class DirectoryManager {
         'chute-enabled',
       ],
       gameplayResults: ['results-ceres', 'ranking-X', 'ranking-S', 'ranking-A', 'ranking-B', 'ranking-C', 'ranking-D' ],
+      songSelect: ['songlist-item', 'songlist-stats', 'play-song'],
     };
-    this.beatmaps = [1];
+    this.beatmaps = ['001', '002', '003'];
   }
 
   getImages(category: ImageCategory): ImageItem[] {
@@ -59,12 +56,7 @@ export default class DirectoryManager {
     );
   }
 
-  getBeatmaps(): Beatmap[] {
-    return this.beatmaps.map((beatmapId: number) => {
-      return {
-        fileName: 'beatmap.osu',
-        id: beatmapId,
-      };
-    });
+  getBeatmaps(): string[] {
+    return this.beatmaps;
   }
 }
