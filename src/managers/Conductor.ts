@@ -1,4 +1,4 @@
-import { Physics, Sound } from 'phaser';
+import { Sound } from 'phaser';
 
 interface SongData {
   bpm: number
@@ -6,32 +6,35 @@ interface SongData {
 
 export default class Conductor {
   public bpm: number;
-  public crochet: number;
+  public crotchet: number;
   public songPosition: number;
   public lastBeat: number;
-  public beatmap: Physics.Arcade.Group;
   public sound: Sound.WebAudioSound;
   public beatNumber: number;
-  constructor(songData: SongData, sound: Sound.WebAudioSound, beatmap: Physics.Arcade.Group) {
+  public mapPosition: number;
+  public totalBeats: number;
+  constructor(songData: SongData, sound: Sound.WebAudioSound) {
     this.bpm = songData.bpm;
-    this.crochet = Math.round(60 / this.bpm); // the time duration of a beat, calculated by tempo
+    this.crotchet = 60 / this.bpm; // the time duration of a beat, calculated by tempo
     // offset = ???
     this.sound = sound;
-    this.songPosition = sound.seek;
+    this.songPosition = 0;
+    this.mapPosition = 0;
     this.lastBeat = 0;
     this.beatNumber = 1;
-    this.beatmap = beatmap;
+    this.totalBeats = Math.floor(this.sound.totalDuration / this.crotchet);
   }
 
-  update(scrollSpeed: number) {
-    this.songPosition = this.sound.seek;
-    if (this.songPosition > this.lastBeat + this.crochet) {
-      this.lastBeat += this.crochet;
+  update() {
+    if (this.sound.isPlaying) {
+      this.songPosition = this.sound.seek;
+
+      if (this.songPosition > this.lastBeat + this.crotchet) {
+        this.lastBeat += this.crotchet;
+      }
+
+      this.beatNumber = Math.floor(this.songPosition / this.crotchet);
     }
-
-    console.log(this.songPosition % this.crochet);
-
-    this.beatmap.incY(this.crochet * scrollSpeed);
   }
 }
 

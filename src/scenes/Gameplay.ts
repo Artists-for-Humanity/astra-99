@@ -48,6 +48,7 @@ export default class Gameplay extends Scene {
     n300: number;
   };
   songId: string;
+  conductor: Conductor | undefined;
 
   constructor() {
     super({ key: 'Gameplay' });
@@ -86,6 +87,7 @@ export default class Gameplay extends Scene {
     this.songIsOver = false;
     this.menuControls;
     this.beatmapAudio;
+    this.conductor;
   }
 
   preload() {
@@ -115,7 +117,6 @@ export default class Gameplay extends Scene {
   create(data: any) {
     this.songId = data.songId;
     this.beatmapAudio = (this.sound.add(`beatmap-audio-${data.songId}`) as Sound.WebAudioSound);
-    console.log(this.cache.audio.entries);
     this.beatmap = Beatmap(this.cache.text.get(`beatmap-${data.songId}`));
     this.keybinds = this.input.keyboard.addKeys('Q,W,O,P');
     this.menuControls = this.input.keyboard.addKey('SPACE');
@@ -197,6 +198,9 @@ export default class Gameplay extends Scene {
       .staticSprite(800, this.receptorBody.getChildren()[0].body.position.y + 40.75, 'baseline-calibrator')
       .setVisible(false).body.position.y;
 
+    this.conductor = new Conductor({
+      bpm: new SongList().getSongById(this.songId)!.bpm,
+    }, this.beatmapAudio!);
     this.events.on('shutdown', this.shutdown, this);
   }
 
@@ -207,12 +211,7 @@ export default class Gameplay extends Scene {
         this.endSong();
       }
 
-      new Conductor({
-        bpm: new SongList().getSongById(this.songId)!.bpm,
-      }, (this.beatmapAudio as Sound.WebAudioSound), this.map!);
-
-      this.map!.incY(21);
-
+      this.conductor!.update(21);
       this.map!.getChildren()
         .filter((child) => child.body.position.y > this.game.canvas.height)
         .forEach((missedNote) => {
@@ -221,11 +220,9 @@ export default class Gameplay extends Scene {
           this.judgeNote(0, this.gameData.baseline);
         });
 
-      const referenceKeys = ['Q', 'W', 'O', 'P'];
-
-      for (const key of referenceKeys) {
+      for (const key of ['Q', 'W', 'O', 'P']) {
         this.input.keyboard.on('keydown-' + key, () => {
-          const column = referenceKeys.indexOf(key);
+          const column = ['Q', 'W', 'O', 'P'].indexOf(key);
           (this.components!.getByName('chutes') as GameObjects.Container)
             .getByName('chute-' + column.toString())
             .setState(1);
@@ -241,7 +238,7 @@ export default class Gameplay extends Scene {
           }
         });
         this.input.keyboard.on('keyup-' + key, () => {
-          const column = referenceKeys.indexOf(key);
+          const column = ['Q', 'W', 'O', 'P'].indexOf(key);
           (this.components!.getByName('chutes') as GameObjects.Container)
             .getByName('chute-' + column.toString())
             .setState(0);
@@ -256,7 +253,7 @@ export default class Gameplay extends Scene {
         }
       });
     } else {
-      this.input.keyboard.on('keydown-SPACE', () => {
+      this.input.keyboard.once('keydown-SPACE', () => {
         this.isActiveGameplay = true;
         this.beatmapAudio!.play();
         this.physics.resume();
@@ -293,13 +290,13 @@ export default class Gameplay extends Scene {
         return 0;
       }
       // actual judgement for non-missed notes
-      if (judgement >= 200) {
+      if (judgement >= 150) {
         this.judgements.n50++;
         return 50;
       } else if (judgement >= 100) {
         this.judgements.n100++;
         return 100;
-      } else if (judgement >= 75) {
+      } else if (judgement >= 50) {
         this.judgements.n200++;
         return 200;
       } else if (judgement >= 0) {
