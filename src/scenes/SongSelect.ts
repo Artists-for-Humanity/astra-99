@@ -84,6 +84,7 @@ export default class SongSelect extends Scene {
               songId: currentId.text,
               songArtist: songlist.getSongById(currentId.text)!.artist,
               songTitle: songlist.getSongById(currentId.text)!.title,
+              bpm: songlist.getSongById(currentId.text)!.bpm,
             });
           }
         });

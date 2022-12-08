@@ -1,6 +1,8 @@
 import { Scene, GameObjects, Sound } from 'phaser';
 import DirectoryManager from '../managers/DirectoryManager';
 import Beatmap from '../managers/BeatmapManager';
+import Conductor from '../managers/Conductor';
+import SongList from '../managers/SongListManager';
 
 const directories = new DirectoryManager();
 
@@ -27,7 +29,7 @@ interface GameData {
 }
 export default class Gameplay extends Scene {
   // scene members
-  beatmapAudio?: Sound.BaseSound;
+  beatmapAudio?: Sound.WebAudioSound;
   keybinds: unknown;
   menuControls: unknown;
   components?: GameObjects.Container;
@@ -45,9 +47,11 @@ export default class Gameplay extends Scene {
     n200: number;
     n300: number;
   };
+  songId: string;
 
   constructor() {
     super({ key: 'Gameplay' });
+    this.songId = '';
     this.keybinds;
     this.components;
     this.beatmap;
@@ -109,7 +113,8 @@ export default class Gameplay extends Scene {
   }
 
   create(data: any) {
-    this.beatmapAudio = this.sound.add(`beatmap-audio-${data.songId}`);
+    this.songId = data.songId;
+    this.beatmapAudio = (this.sound.add(`beatmap-audio-${data.songId}`) as Sound.WebAudioSound);
     console.log(this.cache.audio.entries);
     this.beatmap = Beatmap(this.cache.text.get(`beatmap-${data.songId}`));
     this.keybinds = this.input.keyboard.addKeys('Q,W,O,P');
@@ -201,6 +206,10 @@ export default class Gameplay extends Scene {
       if (this.songIsOver) {
         this.endSong();
       }
+
+      new Conductor({
+        bpm: new SongList().getSongById(this.songId)!.bpm,
+      }, (this.beatmapAudio as Sound.WebAudioSound), this.map!);
 
       this.map!.incY(21);
 

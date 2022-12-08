@@ -1,4 +1,4 @@
-import { Sound } from 'phaser';
+import { Physics, Sound } from 'phaser';
 
 interface SongData {
   bpm: number
@@ -8,11 +8,30 @@ export default class Conductor {
   public bpm: number;
   public crochet: number;
   public songPosition: number;
-  constructor(songData: SongData, sound: Sound.WebAudioSound) {
+  public lastBeat: number;
+  public beatmap: Physics.Arcade.Group;
+  public sound: Sound.WebAudioSound;
+  public beatNumber: number;
+  constructor(songData: SongData, sound: Sound.WebAudioSound, beatmap: Physics.Arcade.Group) {
     this.bpm = songData.bpm;
-    this.crochet = 0; // the time duration of a beat, calculated by tempo
+    this.crochet = Math.round(60 / this.bpm); // the time duration of a beat, calculated by tempo
     // offset = ???
+    this.sound = sound;
     this.songPosition = sound.seek;
+    this.lastBeat = 0;
+    this.beatNumber = 1;
+    this.beatmap = beatmap;
+  }
+
+  update(scrollSpeed: number) {
+    this.songPosition = this.sound.seek;
+    if (this.songPosition > this.lastBeat + this.crochet) {
+      this.lastBeat += this.crochet;
+    }
+
+    console.log(this.songPosition % this.crochet);
+
+    this.beatmap.incY(this.crochet * scrollSpeed);
   }
 }
 

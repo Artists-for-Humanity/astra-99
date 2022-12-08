@@ -4,6 +4,7 @@ interface Song {
   artist: string,
   album?: string,
   source?: string,
+  bpm: number,
 }
 
 const Tracks: Song[] = [
@@ -12,18 +13,21 @@ const Tracks: Song[] = [
     title: 'Illness LiLin',
     artist: 'Kaneko Chiharu',
     source: 'SDVX Heavenly Haven',
+    bpm: 280,
   },
   {
     id: '002',
     title: 'Let\'s All Love Lain',
     artist: 'TOKYOPILL',
     album: 'Abandon the Flesh!',
+    bpm: 171,
   },
   {
     id: '003',
     title: 'DESTROY The Wired',
     artist: 'TOKYOPILL',
     album: 'Welcome To The Wired!',
+    bpm: 180,
   },
 ];
 
