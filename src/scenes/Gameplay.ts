@@ -3,6 +3,7 @@ import DirectoryManager from '../managers/DirectoryManager';
 import Beatmap from '../managers/BeatmapManager';
 import Conductor from '../managers/Conductor';
 import SongList from '../managers/SongListManager';
+import MapBuilder from '../managers/MapBuilder';
 
 const directories = new DirectoryManager();
 
@@ -49,6 +50,7 @@ export default class Gameplay extends Scene {
   };
   songId: string;
   conductor: Conductor | undefined;
+  mapBuilder?: MapBuilder;
 
   constructor() {
     super({ key: 'Gameplay' });
@@ -88,6 +90,7 @@ export default class Gameplay extends Scene {
     this.menuControls;
     this.beatmapAudio;
     this.conductor;
+    this.mapBuilder;
   }
 
   preload() {
@@ -122,7 +125,7 @@ export default class Gameplay extends Scene {
     this.menuControls = this.input.keyboard.addKey('SPACE');
 
     // building the rhythm game track and the "chutes" (basically columns) for the notes
-    const Track = this.add.sprite(center.x, center.y /* - (99 / 4) */, 'track');
+    const Track = this.add.sprite(center.x, center.y /* - (99 / 4) */, 'track').setName('track');
     const chuteMapping = [Track.x - 199, Track.x - 66, Track.x + 66, Track.x + 199];
     const Chutes = this.add.container(
       0,
@@ -201,6 +204,7 @@ export default class Gameplay extends Scene {
     this.conductor = new Conductor({
       bpm: new SongList().getSongById(this.songId)!.bpm,
     }, this.beatmapAudio!);
+    this.mapBuilder = new MapBuilder(this, this.beatmap, this.conductor!.crotchet);
     this.events.on('shutdown', this.shutdown, this);
   }
 
@@ -211,7 +215,12 @@ export default class Gameplay extends Scene {
         this.endSong();
       }
 
-      this.conductor!.update(21);
+      this.conductor!.update();
+      const BaseTrackValue = this.components?.getByName('track')?.body?.position.x;
+      if (BaseTrackValue) {
+        this.mapBuilder!.update(this.conductor!.beatNumber, 20, [BaseTrackValue! - 199, BaseTrackValue! - 66, BaseTrackValue! + 66, BaseTrackValue! + 199]);
+      }
+
       this.map!.getChildren()
         .filter((child) => child.body.position.y > this.game.canvas.height)
         .forEach((missedNote) => {
