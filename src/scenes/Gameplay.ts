@@ -30,6 +30,7 @@ interface GameData {
 }
 export default class Gameplay extends Scene {
   // scene members
+  track?: GameObjects.Sprite;
   beatmapAudio?: Sound.WebAudioSound;
   keybinds: unknown;
   menuControls: unknown;
@@ -91,6 +92,7 @@ export default class Gameplay extends Scene {
     this.beatmapAudio;
     this.conductor;
     this.mapBuilder;
+    this.track;
   }
 
   preload() {
@@ -125,8 +127,8 @@ export default class Gameplay extends Scene {
     this.menuControls = this.input.keyboard.addKey('SPACE');
 
     // building the rhythm game track and the "chutes" (basically columns) for the notes
-    const Track = this.add.sprite(center.x, center.y /* - (99 / 4) */, 'track').setName('track');
-    const chuteMapping = [Track.x - 199, Track.x - 66, Track.x + 66, Track.x + 199];
+    this.track = this.add.sprite(center.x, center.y /* - (99 / 4) */, 'track').setName('track');
+    const chuteMapping = [this.track.x - 199, this.track.x - 66, this.track.x + 66, this.track.x + 199];
     const Chutes = this.add.container(
       0,
       0,
@@ -146,9 +148,9 @@ export default class Gameplay extends Scene {
     );
 
     Chutes.setName('chutes');
-    const FullTrack = this.add.container(0, 0, [Chutes, Track]);
+    const FullTrack = this.add.container(0, 0, [Chutes, this.track]);
 
-    FullTrack.moveBelow(Chutes, Track);
+    FullTrack.moveBelow(Chutes, this.track);
     this.components = FullTrack;
 
     // building beatmaps
@@ -204,7 +206,7 @@ export default class Gameplay extends Scene {
     this.conductor = new Conductor({
       bpm: new SongList().getSongById(this.songId)!.bpm,
     }, this.beatmapAudio!);
-    this.mapBuilder = new MapBuilder(this, this.beatmap, this.conductor!.crotchet);
+    this.mapBuilder = new MapBuilder(this, this.beatmap, this.conductor);
     this.events.on('shutdown', this.shutdown, this);
   }
 
@@ -216,9 +218,9 @@ export default class Gameplay extends Scene {
       }
 
       this.conductor!.update();
-      const BaseTrackValue = this.components?.getByName('track')?.body?.position.x;
+      const BaseTrackValue = this.track!.x;
       if (BaseTrackValue) {
-        this.mapBuilder!.update(this.conductor!.beatNumber, 20, [BaseTrackValue! - 199, BaseTrackValue! - 66, BaseTrackValue! + 66, BaseTrackValue! + 199]);
+        this.mapBuilder!.update(this.conductor!.beatNumber, 20, [BaseTrackValue! - 199, BaseTrackValue! - 66, BaseTrackValue! + 66, BaseTrackValue! + 199], this.receptorBody!.getChildren()[0]); // todo: add the type of receptor body to the mapbuilder function, find the distance between the "spawning region" and the receptors and make it a fixed value ex. 1000 pixels
       }
 
       this.map!.getChildren()

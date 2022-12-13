@@ -1,4 +1,5 @@
 import { Physics, Scene /* , Sound */ } from 'phaser';
+import Conductor from './Conductor';
 
 type Note = {
   type: string;
@@ -27,12 +28,14 @@ export default class MapBuilder {
   public crotchet: number;
   public scene: Scene;
   public physicalMap: Physics.Arcade.Group;
-  constructor(scene: Scene, beatmap: BeatmapSet, crotchet: number) {
+  public conductor: Conductor;
+  constructor(scene: Scene, beatmap: BeatmapSet, conductor: Conductor) {
     this.beatmap = beatmap;
     this.spawnedNotes = [];
-    this.crotchet = crotchet;
+    this.crotchet = conductor.crotchet;
     this.scene = scene;
     this.physicalMap = scene.physics.add.group();
+    this.conductor = conductor;
   }
 
   update(beatNumber: number, scrollSpeed: number, columnValues: number[] /* , sound: Sound.WebAudioSound */) {
@@ -58,10 +61,11 @@ export default class MapBuilder {
     const noteToSpawn = this.spawnedNotes.find((n) => n === note.startTime);
     if (!noteToSpawn) { // if the note that is queued up to spawn isnt already loaded
       this.spawnedNotes.push(note.startTime);
-      const newNote = this.scene.physics.add.sprite(columnValues[note.column], ((note.startTime / this.crotchet) * (scrollSpeed * -1)), 'note').setName(`note-${note.startTime}-${note.column}`);
+      // console.log(note.startTime / this.conductor.bpm);
+      const newNote = this.scene.physics.add.sprite(columnValues[note.column], ((note.startTime % this.conductor.bpm) * (-1 * scrollSpeed)), 'note').setName(`note-${note.startTime}-${note.column}`);
+      console.log(newNote.y);
       this.physicalMap.add(newNote);
-      console.log(this.physicalMap.getChildren());
-      console.log(`spawned note-${note.startTime}-${note.column}`);
+      // console.log(`spawned note-${note.startTime}-${note.column}`);
       note.spawned = true;
     } // else if (noteToSpawn) {
     //   const x = this.scene.children.list.find((n) => {
