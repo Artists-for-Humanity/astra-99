@@ -34,7 +34,6 @@ export default class Conductor {
       }
 
       this.beatNumber = Math.floor(this.songPosition / this.crotchet);
-      console.log(this.beatNumber);
     }
   }
 }

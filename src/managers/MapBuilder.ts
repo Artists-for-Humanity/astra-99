@@ -38,7 +38,7 @@ export default class MapBuilder {
     this.conductor = conductor;
   }
 
-  update(beatNumber: number, scrollSpeed: number, columnValues: number[] /* , sound: Sound.WebAudioSound */) {
+  update(beatNumber: number, scrollSpeed: number, columnValues: number[], baseReceptor: Phaser.GameObjects.GameObject /* , sound: Sound.WebAudioSound */) {
     const notesToLoad = this.beatmap.filter((n) => {
       return (n.startTime / (this.crotchet * 1000)) <= beatNumber + 4;
     }).map((n: Note) => {
@@ -62,8 +62,8 @@ export default class MapBuilder {
     if (!noteToSpawn) { // if the note that is queued up to spawn isnt already loaded
       this.spawnedNotes.push(note.startTime);
       // console.log(note.startTime / this.conductor.bpm);
-      const newNote = this.scene.physics.add.sprite(columnValues[note.column], ((note.startTime % this.conductor.bpm) * (-1 * scrollSpeed)), 'note').setName(`note-${note.startTime}-${note.column}`);
-      console.log(newNote.y);
+      const noteStartTimeInSeconds = note.startTime / 1000;
+      const newNote = this.scene.physics.add.sprite(columnValues[note.column], (-100 * (noteStartTimeInSeconds % 1)), 'note').setName(`note-${note.startTime}-${note.column}`);
       this.physicalMap.add(newNote);
       // console.log(`spawned note-${note.startTime}-${note.column}`);
       note.spawned = true;

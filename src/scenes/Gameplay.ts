@@ -220,7 +220,7 @@ export default class Gameplay extends Scene {
       this.conductor!.update();
       const BaseTrackValue = this.track!.x;
       if (BaseTrackValue) {
-        this.mapBuilder!.update(this.conductor!.beatNumber, 20, [BaseTrackValue! - 199, BaseTrackValue! - 66, BaseTrackValue! + 66, BaseTrackValue! + 199], this.receptorBody!.getChildren()[0]); // todo: add the type of receptor body to the mapbuilder function, find the distance between the "spawning region" and the receptors and make it a fixed value ex. 1000 pixels
+        this.mapBuilder!.update(this.conductor!.beatNumber, 20, [BaseTrackValue! - 199, BaseTrackValue! - 66, BaseTrackValue! + 66, BaseTrackValue! + 199], this.receptorBody!.getChildren()[0]);
       }
 
       this.map!.getChildren()
