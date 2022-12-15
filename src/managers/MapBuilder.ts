@@ -36,11 +36,15 @@ export default class MapBuilder {
     this.scene = scene;
     this.physicalMap = scene.physics.add.group();
     this.conductor = conductor;
+
+    console.log(this.beatmap[0].startTime, this.crotchet * 1000);
+    console.log(this.beatmap[0].startTime / (this.crotchet * 1000));
   }
 
-  update(beatNumber: number, scrollSpeed: number, columnValues: number[], baseReceptor: Phaser.GameObjects.GameObject /* , sound: Sound.WebAudioSound */) {
+  update(beatNumber: number, scrollSpeed: number, columnValues: number[] /* , baseReceptor: Phaser.GameObjects.GameObject, sound: Sound.WebAudioSound */) {
+    console.log(beatNumber);
     const notesToLoad = this.beatmap.filter((n) => {
-      return (n.startTime / (this.crotchet * 1000)) <= beatNumber + 4;
+      return (n.startTime / (this.crotchet * 1000)) >= beatNumber + 4 && (n.startTime / (this.crotchet * 1000)) <= beatNumber + 4.75;
     }).map((n: Note) => {
       return {
         type: n.type,
@@ -60,12 +64,15 @@ export default class MapBuilder {
   spawnNote(note: Note & { spawned: boolean }, scrollSpeed: number, columnValues: number[]) {
     const noteToSpawn = this.spawnedNotes.find((n) => n === note.startTime);
     if (!noteToSpawn) { // if the note that is queued up to spawn isnt already loaded
+      console.log(note.startTime);
       this.spawnedNotes.push(note.startTime);
       // console.log(note.startTime / this.conductor.bpm);
       const noteStartTimeInSeconds = note.startTime / 1000;
-      const newNote = this.scene.physics.add.sprite(columnValues[note.column], (-100 * (noteStartTimeInSeconds % 1)), 'note').setName(`note-${note.startTime}-${note.column}`);
+      const beatPlacement = (Math.round(noteStartTimeInSeconds * 4) / 4);
+      console.log(beatPlacement);
+      const newNote = this.scene.physics.add.sprite(columnValues[note.column], (-862), 'note').setName(`note-${note.startTime}-${note.column}`);
       this.physicalMap.add(newNote);
-      // console.log(`spawned note-${note.startTime}-${note.column}`);
+      console.log(`spawned ${note.startTime} at ${newNote.y}`);
       note.spawned = true;
     } // else if (noteToSpawn) {
     //   const x = this.scene.children.list.find((n) => {

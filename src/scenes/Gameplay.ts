@@ -220,7 +220,7 @@ export default class Gameplay extends Scene {
       this.conductor!.update();
       const BaseTrackValue = this.track!.x;
       if (BaseTrackValue) {
-        this.mapBuilder!.update(this.conductor!.beatNumber, 20, [BaseTrackValue! - 199, BaseTrackValue! - 66, BaseTrackValue! + 66, BaseTrackValue! + 199], this.receptorBody!.getChildren()[0]);
+        this.mapBuilder!.update(this.conductor!.beatNumber, 20, [BaseTrackValue! - 199, BaseTrackValue! - 66, BaseTrackValue! + 66, BaseTrackValue! + 199] /* this.receptorBody!.getChildren()[0] */);
       }
 
       this.map!.getChildren()
