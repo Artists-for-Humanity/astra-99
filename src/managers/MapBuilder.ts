@@ -42,9 +42,10 @@ export default class MapBuilder {
   }
 
   update(beatNumber: number, scrollSpeed: number, columnValues: number[] /* , baseReceptor: Phaser.GameObjects.GameObject, sound: Sound.WebAudioSound */) {
-    console.log(beatNumber);
+    // eslint-disable-next-line yoda
+    console.log(this.conductor.songPosition, (5.726 >= this.conductor.songPosition + 1000 && 5.726 <= this.conductor.songPosition + 2000));
     const notesToLoad = this.beatmap.filter((n) => {
-      return (n.startTime / (this.crotchet * 1000)) >= beatNumber + 4 && (n.startTime / (this.crotchet * 1000)) <= beatNumber + 4.75;
+      return (n.startTime / 1000) >= this.conductor.songPosition + 500 && (n.startTime / 1000) <= this.conductor.songPosition + 2000;
     }).map((n: Note) => {
       return {
         type: n.type,
@@ -54,7 +55,9 @@ export default class MapBuilder {
         spawned: false,
       };
     }); // get all notes that are within the next two bars of the song and load them into a variable
+    // console.log(notesToLoad);
     for (const note of notesToLoad) {
+      console.log(note.startTime);
       this.spawnNote(note, 20, columnValues);
     }
 
