@@ -199,20 +199,22 @@ export default class Gameplay extends Scene {
     this.gameData.scrollSpeed =
       Math.abs(this.receptorBody!.getChildren()[0].body.position.y - this.map!.getChildren()[0].body.position.y) / 750;
 
+    const baselineEditor = 10; // 40.75;
     this.gameData.baseline = this.physics.add
-      .staticSprite(800, this.receptorBody.getChildren()[0].body.position.y + 40.75, 'baseline-calibrator')
-      .setVisible(false).body.position.y;
+      .staticSprite(800, this.receptorBody.getChildren()[0].body.position.y + baselineEditor, 'baseline-calibrator')
+      .setVisible(false)
+      .body.position.y;
 
     this.conductor = new Conductor({
       bpm: new SongList().getSongById(this.songId)!.bpm,
     }, this.beatmapAudio!);
-    this.mapBuilder = new MapBuilder(this, this.beatmap, this.conductor);
+    this.mapBuilder = new MapBuilder(this, this.beatmap, this.conductor, this.gameData.baseline);
     this.events.on('shutdown', this.shutdown, this);
   }
 
   update() {
     if (this.isActiveGameplay) {
-      this.songIsOver = this.map!.children.size === 0;
+      this.songIsOver = (this.map!.children.size === 0) && (this.beatmapAudio?.seek === this.beatmapAudio?.totalDuration) && (this.beatmapAudio?.isPlaying === false);
       if (this.songIsOver) {
         this.endSong();
       }
@@ -220,7 +222,7 @@ export default class Gameplay extends Scene {
       this.conductor!.update();
       const BaseTrackValue = this.track!.x;
       if (BaseTrackValue) {
-        this.mapBuilder!.update(this.conductor!.beatNumber, 20, [BaseTrackValue! - 199, BaseTrackValue! - 66, BaseTrackValue! + 66, BaseTrackValue! + 199] /* this.receptorBody!.getChildren()[0] */);
+        this.map = this.mapBuilder!.update(this.conductor!.beatNumber, 20, [BaseTrackValue! - 199, BaseTrackValue! - 66, BaseTrackValue! + 66, BaseTrackValue! + 199] /* this.receptorBody!.getChildren()[0] */);
       }
 
       this.map!.getChildren()
@@ -284,17 +286,17 @@ export default class Gameplay extends Scene {
 
     if (note!.state === 3) return; // this only calls the deletion and judgement once
     const noteInput = note!.body.position.y;
-    const baseline = this.gameData.baseline;
 
     note?.setState(3);
     this.map!.remove(note!, true, true);
 
     // initiates the chain of judging notes
-    this.judgeNote(noteInput, baseline);
+    this.judgeNote(noteInput, this.gameData.baseline);
   }
 
   judgeNote(noteY: number, baseline: number) {
     const judgement = Math.abs(noteY - baseline);
+    console.log(judgement);
     const result = (() => {
       // returning miss notes
       if (noteY === 0) {

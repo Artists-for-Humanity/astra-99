@@ -101,8 +101,6 @@ export default class SongSelect extends Scene {
           });
         }
       });
-      // songs.push(btn);
     }
-    // creating stuff
   }
 }

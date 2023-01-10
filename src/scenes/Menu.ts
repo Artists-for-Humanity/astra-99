@@ -1,5 +1,4 @@
-import { Scene } from 'phaser';
-import * as WebFont from 'webfontloader';
+import { Scene } from 'phaser';\
 
 export default class Menu extends Scene {
   constructor() {
@@ -11,20 +10,6 @@ export default class Menu extends Scene {
     this.load.image('menu-selected', new URL('../assets/images/menu-option-selected.png', import.meta.url).href);
   }
   create() {
-    WebFont.load({
-      google: {
-        families: ['Lato'],
-      },
-      active: () => {
-        this.add.text(window.innerWidth - 600, 16, 'ASTRA 99', {
-          fontFamily: 'Lato',
-          fontSize: '128px',
-        });
-      },
-      inactive: () => {
-        console.log('something happened...');
-      },
-    });
     this.add.image(window.innerWidth - 250, 225, 'menu').scaleX = 2;
   }
   update() {

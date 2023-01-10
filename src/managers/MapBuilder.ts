@@ -29,23 +29,20 @@ export default class MapBuilder {
   public scene: Scene;
   public physicalMap: Physics.Arcade.Group;
   public conductor: Conductor;
-  constructor(scene: Scene, beatmap: BeatmapSet, conductor: Conductor) {
+  public baseline: number;
+  constructor(scene: Scene, beatmap: BeatmapSet, conductor: Conductor, baseline: number) {
     this.beatmap = beatmap;
     this.spawnedNotes = [];
     this.crotchet = conductor.crotchet;
     this.scene = scene;
     this.physicalMap = scene.physics.add.group();
     this.conductor = conductor;
-
-    console.log(this.beatmap[0].startTime, this.crotchet * 1000);
-    console.log(this.beatmap[0].startTime / (this.crotchet * 1000));
+    this.baseline = baseline;
   }
 
   update(beatNumber: number, scrollSpeed: number, columnValues: number[] /* , baseReceptor: Phaser.GameObjects.GameObject, sound: Sound.WebAudioSound */) {
-    // eslint-disable-next-line yoda
-    console.log(this.conductor.songPosition, (5.726 >= this.conductor.songPosition + 1000 && 5.726 <= this.conductor.songPosition + 2000));
     const notesToLoad = this.beatmap.filter((n) => {
-      return (n.startTime / 1000) >= this.conductor.songPosition + 500 && (n.startTime / 1000) <= this.conductor.songPosition + 2000;
+      return (n.startTime / 1000) >= this.conductor.songPosition + 1 && (n.startTime / 1000) <= this.conductor.songPosition + 1.25;
     }).map((n: Note) => {
       return {
         type: n.type,
@@ -57,25 +54,23 @@ export default class MapBuilder {
     }); // get all notes that are within the next two bars of the song and load them into a variable
     // console.log(notesToLoad);
     for (const note of notesToLoad) {
-      console.log(note.startTime);
       this.spawnNote(note, 20, columnValues);
     }
 
     this.physicalMap.incY(scrollSpeed);
+    return this.physicalMap;
   }
 
   spawnNote(note: Note & { spawned: boolean }, scrollSpeed: number, columnValues: number[]) {
     const noteToSpawn = this.spawnedNotes.find((n) => n === note.startTime);
     if (!noteToSpawn) { // if the note that is queued up to spawn isnt already loaded
-      console.log(note.startTime);
       this.spawnedNotes.push(note.startTime);
       // console.log(note.startTime / this.conductor.bpm);
-      const noteStartTimeInSeconds = note.startTime / 1000;
-      const beatPlacement = (Math.round(noteStartTimeInSeconds * 4) / 4);
-      console.log(beatPlacement);
-      const newNote = this.scene.physics.add.sprite(columnValues[note.column], (-862), 'note').setName(`note-${note.startTime}-${note.column}`);
+      // const noteStartTimeInSeconds = note.startTime / 1000;
+      // const beatPlacement = (Math.round(noteStartTimeInSeconds * 4) / 4);
+      const newNote = this.scene.physics.add.sprite(columnValues[note.column], -(this.baseline), 'note').setName(`note-${note.startTime}-${note.column}`);
       this.physicalMap.add(newNote);
-      console.log(`spawned ${note.startTime} at ${newNote.y}`);
+      // console.log(`spawned ${note.startTime} at ${newNote.y}`);
       note.spawned = true;
     } // else if (noteToSpawn) {
     //   const x = this.scene.children.list.find((n) => {

@@ -10,7 +10,9 @@
     "dev": "npx http-server ./dist",
     "serve": "npx http-server ./dist",
     "prettify": "npx prettier write .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch-build": "npx nodemon -w ./src --exec npm run build",
+    "watch-serve": "npx nodemon -w dist -e js --exec npx http-server ./dist"
   },
   "keywords": [],
   "author": "",
