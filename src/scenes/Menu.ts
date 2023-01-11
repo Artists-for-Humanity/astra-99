@@ -1,6 +1,6 @@
-import { Scene } from 'phaser';\
+import { Scene } from 'phaser';
 
-export default class Menu extends Scene {
+export default class MainMenu extends Scene {
   constructor() {
     super({ key: 'Menu' });
   }
@@ -10,9 +10,9 @@ export default class Menu extends Scene {
     this.load.image('menu-selected', new URL('../assets/images/menu-option-selected.png', import.meta.url).href);
   }
   create() {
-    this.add.image(window.innerWidth - 250, 225, 'menu').scaleX = 2;
+    console.log('create');
   }
   update() {
-    console.log('blah blah update');
+    // gonna update this with button code and things like that
   }
 }

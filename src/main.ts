@@ -1,5 +1,5 @@
 import { AUTO, Game, Scale, Types } from 'phaser';
-// import Menu from './scenes/Menu';
+import MainMenu from './scenes/Menu';
 import GameplayResults from './scenes/GameplayResults';
 import Gameplay from './scenes/Gameplay';
 import SongSelect from './scenes/SongSelect';

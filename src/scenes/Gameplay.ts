@@ -12,12 +12,14 @@ const center = {
     y: 1000 / 2,
   };
 
-type BeatmapObj = {
+interface Note {
   type: string;
   startTime: number;
   column: number;
   endTime: number;
-}[];
+}
+
+type BeatmapObj = Note[];
 
 type NumberText = { text?: Phaser.GameObjects.Text; value: number };
 interface GameData {
@@ -36,6 +38,7 @@ export default class Gameplay extends Scene {
   menuControls: unknown;
   components?: GameObjects.Container;
   beatmap?: BeatmapObj;
+  lastNote?: Note;
   map?: Phaser.Physics.Arcade.Group;
   receptorBody?: Phaser.Physics.Arcade.StaticGroup;
   timingPoints: { time: number; bpm: number }[]; // todo: improve syncing
@@ -59,6 +62,7 @@ export default class Gameplay extends Scene {
     this.keybinds;
     this.components;
     this.beatmap;
+    this.lastNote;
     this.map;
     this.receptorBody;
     this.timingPoints = [];
@@ -123,6 +127,7 @@ export default class Gameplay extends Scene {
     this.songId = data.songId;
     this.beatmapAudio = (this.sound.add(`beatmap-audio-${data.songId}`) as Sound.WebAudioSound);
     this.beatmap = Beatmap(this.cache.text.get(`beatmap-${data.songId}`));
+    this.lastNote = this.beatmap[this.beatmap.length - 1];
     this.keybinds = this.input.keyboard.addKeys('Q,W,O,P');
     this.menuControls = this.input.keyboard.addKey('SPACE');
 
@@ -214,7 +219,7 @@ export default class Gameplay extends Scene {
 
   update() {
     if (this.isActiveGameplay) {
-      this.songIsOver = (this.map!.children.size === 0) && (this.beatmapAudio?.seek === this.beatmapAudio?.totalDuration) && (this.beatmapAudio?.isPlaying === false);
+      this.songIsOver = (this.map!.children.size === 0) && (this.lastNote!.startTime / 1000) < this.beatmapAudio!.seek;
       if (this.songIsOver) {
         this.endSong();
       }
