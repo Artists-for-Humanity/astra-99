@@ -1,4 +1,4 @@
-import { Scene } from 'phaser';
+import { GameObjects, Scene, Types } from 'phaser';
 import WebFontFile from '../managers/WebFontLoader';
 import DirectoryManager from '../managers/DirectoryManager';
 import SongList from '../managers/SongListManager';
@@ -7,11 +7,13 @@ const directories = new DirectoryManager();
 const songlist = new SongList();
 
 export default class SongSelect extends Scene {
-  gameStart: object;
-
+  gameStart?: Types.Input.Keyboard.CursorKeys;
+  songs?: GameObjects.Group;
+  scrollLimit: number[];
   constructor() {
     super({ key: 'SongSelect' });
-    this.gameStart = {};
+    this.songs;
+    this.scrollLimit = [0, 1];
   }
   preload() {
     this.load.addFile(new WebFontFile(this.load, ['Audiowide', 'Share Tech'], 'google'));
@@ -27,7 +29,7 @@ export default class SongSelect extends Scene {
     });
   }
   create() {
-    this.gameStart = this.input.keyboard.addKeys('ENTER,SPACE');
+    this.gameStart = this.input.keyboard.createCursorKeys();
     console.log('create');
     this.add.image(330, 500, 'songlist-stats');
     this.add.text(779, 36, 'SONG SELECT', {
@@ -42,9 +44,16 @@ export default class SongSelect extends Scene {
       color: '#D73159',
       align: 'center',
     }).setState(0);
-    // const songs = [];
+    // this.add.rectangle(1193, 1000 - (850 / 2), 750, 850).setFillStyle(0xffffff).setVisible(true)
+    const songScrollRegion = this.make.graphics({ x: 0, y: 0 })
+      .beginPath()
+      .fillStyle(0xffffff, 1)
+      .fillRect(1193 - 350, 1000 - (850), 750, 800)
+      .createGeometryMask();
+    // songGraphics.setMask();
+    this.songs = this.add.group();
     for (let i = 0; i < songlist.list.length; i++) {
-      const bg = this.add.image(0, 0, 'songlist-item'); // FORMERLY 288
+      const bg = this.add.image(0, 0, 'songlist-item').setName('song-card'); // FORMERLY 288
       const songTitle = this.add.text(-300, -50, songlist.list[i].title.toUpperCase(), { // FORMERLY 232
         fontFamily: 'Share Tech',
         fontSize: '48px',
@@ -63,44 +72,56 @@ export default class SongSelect extends Scene {
         color: '#bcd6ec',
         align: 'center',
       });
-      this.add.container(1193, 288 + (250 * i), [bg, songId, songTitle, songArtist]);
+      const item = this.add.container(1193, 288 + (250 * i), [bg, songId, songTitle, songArtist]).setMask(songScrollRegion);
+      this.songs.add(item);
 
       // each item in the song list has a hitarea they can interact with
       this.add.rectangle(1193, 288 + (250 * i), bg.width, bg.height).setInteractive().addListener('pointerup', () => {
         currentId.setText(songlist.list[i].id);
-        console.log(currentId.text);
         if (currentId.style.color !== '#BBD4EB') {
           currentId.setColor('#BBD4EB');
         }
       });
+    }
 
-      for (const key of ['ENTER', 'SPACE']) {
-        this.input.keyboard.on('keydown-' + key, () => {
-          if (currentId.text === '???' || currentId.state !== 0) {
-            return;
-          } else {
-            currentId.state = 1;
-            this.scene.start('Gameplay', {
-              songId: currentId.text,
-              songArtist: songlist.getSongById(currentId.text)!.artist,
-              songTitle: songlist.getSongById(currentId.text)!.title,
-              bpm: songlist.getSongById(currentId.text)!.bpm,
-            });
-          }
+    this.add.image(1376, 920, 'play-song').setInteractive().addListener('pointerup', () => {
+      if (currentId.text === '???' || currentId.state !== 0) {
+        return;
+      } else {
+        currentId.state = 1;
+        this.scene.start('Gameplay', {
+          songId: currentId.text,
+          songArtist: songlist.getSongById(currentId.text)!.artist,
+          songTitle: songlist.getSongById(currentId.text)!.title,
         });
       }
-      this.add.image(1376, 920, 'play-song').setInteractive().addListener('pointerup', () => {
-        if (currentId.text === '???' || currentId.state !== 0) {
-          return;
-        } else {
-          currentId.state = 1;
-          this.scene.start('Gameplay', {
-            songId: currentId.text,
-            songArtist: songlist.getSongById(currentId.text)!.artist,
-            songTitle: songlist.getSongById(currentId.text)!.title,
-          });
-        }
-      });
+    });
+  }
+
+  update() {
+    const limit = 538;
+    if (this.input.keyboard.checkDown(this.gameStart!.down, 250)) {
+      console.log((this.songs?.getChildren()[0] as GameObjects.Container).getByName('song-card'));
+      // if ()
+      this.songs!.incY(250);
     }
+
+    if (this.input.keyboard.checkDown(this.gameStart!.up, 250)) {
+      this.songs!.incY(-250);
+    }
+
+    // if (this.input.keyboard.checkDown(this.gameStart!.space, 750)) {
+    //   if (currentId.text === '???' || currentId.state !== 0) {
+    //     return;
+    //   } else {
+    //     currentId.state = 1;
+    //     this.scene.start('Gameplay', {
+    //       songId: currentId.text,
+    //       songArtist: songlist.getSongById(currentId!.text)!.artist,
+    //       songTitle: songlist.getSongById(currentId!.text)!.title,
+    //       bpm: songlist.getSongById(currentId.text)!.bpm,
+    //     });
+    //   }
+    // }
   }
 }

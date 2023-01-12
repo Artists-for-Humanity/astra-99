@@ -21,7 +21,7 @@ export default class DirectoryManager {
   constructor() {
     this.scenes = ['GameplayScene', 'Menu'];
     this.images = {
-      menu: ['menu-option', 'menu-option-selected'],
+      menu: ['menu-option', 'menu-option-selected', 'menu-gradient', 'title', 'mode-selector', 'title', 'menu-bg'],
       gameplay: [
         'baseline-calibrator',
         'chute',
