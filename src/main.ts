@@ -31,7 +31,7 @@ const config: Types.Core.GameConfig = {
   audio: {
     disableWebAudio: false,
   },
-  scene: [SongSelect, Gameplay, GameplayResults],
+  scene: [GameplayResults],
 };
 
 new Game(config);

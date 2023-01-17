@@ -33,8 +33,8 @@ export default class DirectoryManager {
         'track',
         'chute-enabled',
       ],
-      gameplayResults: ['results-ceres', 'ranking-X', 'ranking-S', 'ranking-A', 'ranking-B', 'ranking-C', 'ranking-D' ],
-      songSelect: ['songlist-item', 'songlist-stats', 'play-song'],
+      gameplayResults: ['character-ranking', 'ranking-X', 'ranking-S', 'ranking-A', 'ranking-B', 'ranking-C', 'ranking-D' ],
+      songSelect: ['songlist-item', 'songlist-stats', 'play-song', 'song-selector'],
     };
     this.beatmaps = ['001', '002', '003'];
   }

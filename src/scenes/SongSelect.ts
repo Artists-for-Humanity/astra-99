@@ -9,11 +9,11 @@ const songlist = new SongList();
 export default class SongSelect extends Scene {
   gameStart?: Types.Input.Keyboard.CursorKeys;
   songs?: GameObjects.Group;
-  scrollLimit: number[];
+  activeSong?: GameObjects.Container;
   constructor() {
     super({ key: 'SongSelect' });
     this.songs;
-    this.scrollLimit = [0, 1];
+    this.activeSong;
   }
   preload() {
     this.load.addFile(new WebFontFile(this.load, ['Audiowide', 'Share Tech'], 'google'));
@@ -38,90 +38,60 @@ export default class SongSelect extends Scene {
       color: '#fff',
       align: 'right',
     });
-    const currentId = this.add.text(569 - 42, 788, '???', {
-      fontFamily: 'Audiowide',
-      fontSize: '64px',
-      color: '#D73159',
-      align: 'center',
-    }).setState(0);
-    // this.add.rectangle(1193, 1000 - (850 / 2), 750, 850).setFillStyle(0xffffff).setVisible(true)
+    // this is the region in which song cards are able to be viewed (and are clipped when they exceed the bounds of this region)
     const songScrollRegion = this.make.graphics({ x: 0, y: 0 })
       .beginPath()
       .fillStyle(0xffffff, 1)
       .fillRect(1193 - 350, 1000 - (850), 750, 800)
       .createGeometryMask();
-    // songGraphics.setMask();
+
     this.songs = this.add.group();
     for (let i = 0; i < songlist.list.length; i++) {
-      const bg = this.add.image(0, 0, 'songlist-item').setName('song-card'); // FORMERLY 288
-      const songTitle = this.add.text(-300, -50, songlist.list[i].title.toUpperCase(), { // FORMERLY 232
+      const bg = this.add.image(0, 0, 'songlist-item');
+      const songTitle = this.add.text(-300, -50, songlist.list[i].title.toUpperCase(), {
         fontFamily: 'Share Tech',
         fontSize: '48px',
         color: '#fff',
         align: 'left',
-      });
-      const songArtist = this.add.text(-300, 0, songlist.list[i].artist.toUpperCase(), { // FORMERLY 291
+      }).setName('song-title');
+      const songArtist = this.add.text(-300, 0, songlist.list[i].artist.toUpperCase(), {
         fontFamily: 'Share Tech',
         fontSize: '40px',
         color: '#fff',
         align: 'left',
-      });
-      const songId = this.add.text((569 / 2) - 60, (157 / 4) - 3, songlist.list[i].id, { // FORMERLY 1412, 324
+      }).setName('song-artist');
+      const songId = this.add.text((569 / 2) - 60, (157 / 4) - 3, songlist.list[i].id, {
         fontFamily: 'Audiowide',
         fontSize: '32px',
         color: '#bcd6ec',
         align: 'center',
-      });
-      const item = this.add.container(1193, 288 + (250 * i), [bg, songId, songTitle, songArtist]).setMask(songScrollRegion);
+      }).setName('song-id');
+      const item = this.add.container(1193, 500 + (200 * i), [bg, songId, songTitle, songArtist]).setMask(songScrollRegion);
       this.songs.add(item);
-
-      // each item in the song list has a hitarea they can interact with
-      this.add.rectangle(1193, 288 + (250 * i), bg.width, bg.height).setInteractive().addListener('pointerup', () => {
-        currentId.setText(songlist.list[i].id);
-        if (currentId.style.color !== '#BBD4EB') {
-          currentId.setColor('#BBD4EB');
-        }
-      });
     }
-
-    this.add.image(1376, 920, 'play-song').setInteractive().addListener('pointerup', () => {
-      if (currentId.text === '???' || currentId.state !== 0) {
-        return;
-      } else {
-        currentId.state = 1;
-        this.scene.start('Gameplay', {
-          songId: currentId.text,
-          songArtist: songlist.getSongById(currentId.text)!.artist,
-          songTitle: songlist.getSongById(currentId.text)!.title,
-        });
-      }
-    });
   }
 
   update() {
-    const limit = 538;
-    if (this.input.keyboard.checkDown(this.gameStart!.down, 250)) {
-      console.log((this.songs?.getChildren()[0] as GameObjects.Container).getByName('song-card'));
-      // if ()
-      this.songs!.incY(250);
+    if (this.input.keyboard.checkDown(this.gameStart!.up, 200) && (this.songs?.getChildren()[0] as GameObjects.Container).y !== 500) {
+      this.songs!.incY(200);
+      this.activeSong = (this.songs?.getChildren() as GameObjects.Container[]).find(song => song.y == 500);
     }
 
-    if (this.input.keyboard.checkDown(this.gameStart!.up, 250)) {
-      this.songs!.incY(-250);
+    if (this.input.keyboard.checkDown(this.gameStart!.down, 200) && (this.songs?.getChildren()[this.songs!.getChildren().length - 1] as GameObjects.Container).y !== 500) {
+      this.songs!.incY(-200);
+      this.activeSong = (this.songs?.getChildren() as GameObjects.Container[]).find(song => song.y == 500);
     }
 
-    // if (this.input.keyboard.checkDown(this.gameStart!.space, 750)) {
-    //   if (currentId.text === '???' || currentId.state !== 0) {
-    //     return;
-    //   } else {
-    //     currentId.state = 1;
-    //     this.scene.start('Gameplay', {
-    //       songId: currentId.text,
-    //       songArtist: songlist.getSongById(currentId!.text)!.artist,
-    //       songTitle: songlist.getSongById(currentId!.text)!.title,
-    //       bpm: songlist.getSongById(currentId.text)!.bpm,
-    //     });
-    //   }
-    // }
+    if (this.input.keyboard.checkDown(this.gameStart!.space, 750)) {
+      const songSelected = songlist.getSongById(
+        (this.activeSong?.getByName('song-id') as GameObjects.Text).text || '001',
+      );
+      this.scene.start('Gameplay', {
+        songId: songSelected!.id,
+        songArtist: songSelected!.artist,
+        songTitle: songSelected!.title,
+        bpm: songSelected!.bpm,
+      });
+    }
   }
 }
