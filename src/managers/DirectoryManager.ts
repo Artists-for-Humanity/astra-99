@@ -17,6 +17,7 @@ export default class DirectoryManager {
   scenes: string[];
   images: Images;
   beatmaps: string[];
+  fx: string[];
 
   constructor() {
     this.scenes = ['GameplayScene', 'Menu'];
@@ -37,6 +38,7 @@ export default class DirectoryManager {
       songSelect: ['songlist-item', 'songlist-stats', 'play-song', 'song-selector'],
     };
     this.beatmaps = ['001', '002', '003'];
+    this.fx = ['scene-switch.wav', 'enter-game.wav'];
   }
 
   getImages(category: ImageCategory): ImageItem[] {
@@ -58,5 +60,9 @@ export default class DirectoryManager {
 
   getBeatmaps(): string[] {
     return this.beatmaps;
+  }
+
+  getSoundEffects(): string[] {
+    return this.fx;
   }
 }

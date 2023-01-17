@@ -3,6 +3,8 @@ import MainMenu from './scenes/Menu';
 import GameplayResults from './scenes/GameplayResults';
 import Gameplay from './scenes/Gameplay';
 import SongSelect from './scenes/SongSelect';
+import Settings from './scenes/Settings';
+
 import ButtonPlugin from 'phaser3-rex-plugins/plugins/button-plugin.js';
 
 const config: Types.Core.GameConfig = {
@@ -31,7 +33,7 @@ const config: Types.Core.GameConfig = {
   audio: {
     disableWebAudio: false,
   },
-  scene: [GameplayResults],
+  scene: [MainMenu, Settings, SongSelect, Gameplay, GameplayResults],
 };
 
 new Game(config);

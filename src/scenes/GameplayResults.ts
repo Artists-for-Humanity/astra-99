@@ -26,17 +26,17 @@ export default class GameplayResults extends Scene {
   }
   init(data: any) {
     this.resultsData = data;
-    if (!this.resultsData.accuracy) {
-      this.resultsData = {
-        accuracy: 100,
-        maxCombo: 202,
-        n300: 202,
-        n200: 0,
-        n100: 0,
-        n50: 0,
-        n0: 0,
-      };
-    }
+    // if (!this.resultsData.accuracy) {
+    //   this.resultsData = {
+    //     accuracy: 100,
+    //     maxCombo: 202,
+    //     n300: 202,
+    //     n200: 0,
+    //     n100: 0,
+    //     n50: 0,
+    //     n0: 0,
+    //   };
+    // }
     this.sound.stopAll();
   }
 
@@ -60,7 +60,7 @@ export default class GameplayResults extends Scene {
     };
     this.add.image(1600 * (1 / 4), 1000 * (3.8 / 5), `ranking-${ranking().toUpperCase()}`).setScale(1.5);
     // ACCURACY
-    this.add.text(1223, 185, `${this.resultsData.accuracy.toFixed(2)}%`, {
+    this.add.text(1223 - 50, 185, `${this.resultsData.accuracy.toFixed(2)}%`, {
       color: 'white',
       fontSize: '78px',
       fontFamily: 'Orbitron',
@@ -69,7 +69,7 @@ export default class GameplayResults extends Scene {
     }).setPadding(16);
 
     // MAX COMBO
-    this.add.text(1350, 291, `${this.resultsData.maxCombo}x`, {
+    this.add.text(1350 - 50, 291, `${this.resultsData.maxCombo}x`, {
       color: 'white',
       fontFamily: 'Orbitron',
       fontSize: '74px',
@@ -78,14 +78,14 @@ export default class GameplayResults extends Scene {
     }).setPadding(16);
 
     // EXCELLENTS
-    this.add.text(983, 383, 'EXCELLENT', {
+    this.add.text(983 - 50, 383, 'EXCELLENT', {
       color: 'white',
       fontSize: '50px',
       fontFamily: 'Orbitron',
       fontStyle: 'bold',
       align: 'left',
     }).setPadding(16);
-    this.add.text(1408.02, 383, `${this.resultsData.n300}`, {
+    this.add.text(1408.02 - 50, 383, `${this.resultsData.n300}`, {
       color: 'white',
       fontSize: '50px',
       fontFamily: 'Orbitron',
@@ -94,14 +94,14 @@ export default class GameplayResults extends Scene {
     }).setPadding(16);
 
     // GREATS
-    this.add.text(983, 458, 'GREAT', {
+    this.add.text(983 - 50, 458, 'GREAT', {
       color: 'white',
       fontSize: '50px',
       fontFamily: 'Orbitron',
       fontStyle: 'bold',
       align: 'left',
     }).setPadding(16);
-    this.add.text(1408.02, 458, `${this.resultsData.n200}`, {
+    this.add.text(1408.02 - 50, 458, `${this.resultsData.n200}`, {
       color: 'white',
       fontSize: '50px',
       fontFamily: 'Orbitron',
@@ -110,14 +110,14 @@ export default class GameplayResults extends Scene {
     }).setPadding(16);
 
     // GOODS
-    this.add.text(983, 535, 'GOOD', {
+    this.add.text(983 - 50, 535, 'GOOD', {
       color: 'white',
       fontSize: '50px',
       fontFamily: 'Orbitron',
       fontStyle: 'bold',
       align: 'left',
     }).setPadding(16);
-    this.add.text(1408.02, 535, `${this.resultsData.n100}`, {
+    this.add.text(1408.02 - 50, 535, `${this.resultsData.n100}`, {
       color: 'white',
       fontSize: '50px',
       fontFamily: 'Orbitron',
@@ -126,14 +126,14 @@ export default class GameplayResults extends Scene {
     }).setPadding(16);
 
     // OKS
-    this.add.text(983, 612, 'OK', {
+    this.add.text(983 - 50, 612, 'OK', {
       color: 'white',
       fontSize: '50px',
       fontFamily: 'Orbitron',
       fontStyle: 'bold',
       align: 'left',
     }).setPadding(16);
-    this.add.text(1408.02, 612, `${this.resultsData.n50}`, {
+    this.add.text(1408.02 - 50, 612, `${this.resultsData.n50}`, {
       color: 'white',
       fontSize: '50px',
       fontFamily: 'Orbitron',
@@ -142,14 +142,14 @@ export default class GameplayResults extends Scene {
     }).setPadding(16);
 
     // MISSES
-    this.add.text(983, 689, 'MISS', {
+    this.add.text(983 - 50, 689, 'MISS', {
       color: 'white',
       fontSize: '50px',
       fontFamily: 'Orbitron',
       fontStyle: 'bold',
       align: 'left',
     }).setPadding(16);
-    this.add.text(1408.02, 689, `${this.resultsData.n0}`, {
+    this.add.text(1408.02 - 50, 689, `${this.resultsData.n0}`, {
       color: 'white',
       fontSize: '50px',
       fontFamily: 'Orbitron',

@@ -27,6 +27,14 @@ export default class SongSelect extends Scene {
         console.log(err);
       }
     });
+
+    directories.getSoundEffects().forEach((sound) => {
+      try {
+        this.load.audio(`${sound.split('.')[0]}`, new URL(`http://127.0.0.1:8080/assets/fx/${sound}`, import.meta.url).href);
+      } catch (err) {
+        console.log(err);
+      }
+    });
   }
   create() {
     this.gameStart = this.input.keyboard.createCursorKeys();
@@ -46,6 +54,9 @@ export default class SongSelect extends Scene {
       .createGeometryMask();
 
     this.songs = this.add.group();
+
+    this.add.image(821, 505, 'song-selector').setDepth(2);
+
     for (let i = 0; i < songlist.list.length; i++) {
       const bg = this.add.image(0, 0, 'songlist-item');
       const songTitle = this.add.text(-300, -50, songlist.list[i].title.toUpperCase(), {
@@ -82,7 +93,8 @@ export default class SongSelect extends Scene {
       this.activeSong = (this.songs?.getChildren() as GameObjects.Container[]).find(song => song.y == 500);
     }
 
-    if (this.input.keyboard.checkDown(this.gameStart!.space, 750)) {
+    if (this.input.keyboard.checkDown(this.gameStart!.space, 250)) {
+      this.sound.play('enter-game');
       const songSelected = songlist.getSongById(
         (this.activeSong?.getByName('song-id') as GameObjects.Text).text || '001',
       );

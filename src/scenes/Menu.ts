@@ -30,6 +30,15 @@ export default class MainMenu extends Scene {
         console.log(err);
       }
     });
+
+    directories.getSoundEffects().forEach((sound) => {
+      try {
+        this.load.audio(`${sound.split('.')[0]}`, new URL(`http://127.0.0.1:8080/assets/fx/${sound}`, import.meta.url).href);
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
     this.load.addFile(new WebFontFile(this.load, ['Audiowide', 'Share Tech'], 'google'));
   }
   create() {
@@ -85,7 +94,8 @@ export default class MainMenu extends Scene {
           this.menuOptions[this.menuOptions.length - 1].active = true;
           this.optionSelector!.setY(this.menuOptions[this.menuOptions.length - 1].selectorY);
         }
-    } else if (this.input.keyboard.checkDown(this.cursors!.space, 800)) {
+    } else if (this.input.keyboard.checkDown(this.cursors!.space, 250)) {
+      this.sound.play('scene-switch');
       this.time.delayedCall(750, () => {
         this.scene.start(this.menuOptions[current].sceneName);
       });
