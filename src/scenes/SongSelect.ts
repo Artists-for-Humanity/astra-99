@@ -38,7 +38,6 @@ export default class SongSelect extends Scene {
   }
   create() {
     this.gameStart = this.input.keyboard.createCursorKeys();
-    console.log('create');
     this.add.image(330, 500, 'songlist-stats');
     this.add.text(779, 36, 'SONG SELECT', {
       fontFamily: 'Audiowide',
@@ -93,7 +92,7 @@ export default class SongSelect extends Scene {
       this.activeSong = (this.songs?.getChildren() as GameObjects.Container[]).find(song => song.y == 500);
     }
 
-    if (this.input.keyboard.checkDown(this.gameStart!.space, 250)) {
+    if (this.input.keyboard.checkDown(this.gameStart!.space, 100)) {
       this.sound.play('enter-game');
       const songSelected = songlist.getSongById(
         (this.activeSong?.getByName('song-id') as GameObjects.Text).text || '001',

@@ -3,6 +3,7 @@ interface Images {
   gameplay: string[];
   gameplayResults: string[];
   songSelect: string[];
+  settings: string[];
 }
 
 interface ImageItem {
@@ -36,13 +37,13 @@ export default class DirectoryManager {
       ],
       gameplayResults: ['character-ranking', 'ranking-X', 'ranking-S', 'ranking-A', 'ranking-B', 'ranking-C', 'ranking-D' ],
       songSelect: ['songlist-item', 'songlist-stats', 'play-song', 'song-selector'],
+      settings: ['setting-active-bg', 'setting-inactive-bg', 'shadow'],
     };
     this.beatmaps = ['001', '002', '003'];
     this.fx = ['scene-switch.wav', 'enter-game.wav'];
   }
 
   getImages(category: ImageCategory): ImageItem[] {
-    // relative to the /scenes directory
     return this.images[category].map((item) => {
       return {
         name: item,

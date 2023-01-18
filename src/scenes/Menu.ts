@@ -72,7 +72,7 @@ export default class MainMenu extends Scene {
     const current = this.menuOptions.findIndex(opt => opt.active === true);
     const previous = { index: current - 1, gameObject: this.menuOptions[current - 1] };
     const next = { index: current + 1, gameObject: this.menuOptions[current + 1] };
-    if (this.input.keyboard.checkDown(this.cursors!.down, 250)) {
+    if (this.input.keyboard.checkDown(this.cursors!.down, 1000)) {
       // keypress down (next option)
       if (this.menuOptions[next.index] && (next.gameObject !== undefined)) {
         this.menuOptions[current].active = false;
@@ -83,7 +83,7 @@ export default class MainMenu extends Scene {
         this.menuOptions[0].active = true;
         this.optionSelector!.setY(this.menuOptions[0].selectorY);
       }
-    } else if (this.input.keyboard.checkDown(this.cursors!.up, 250)) {
+    } else if (this.input.keyboard.checkDown(this.cursors!.up, 100)) {
         // keypress up (previous option)
         if (this.menuOptions[previous.index] && (previous.gameObject !== undefined)) {
           this.menuOptions[current].active = false;
@@ -94,7 +94,7 @@ export default class MainMenu extends Scene {
           this.menuOptions[this.menuOptions.length - 1].active = true;
           this.optionSelector!.setY(this.menuOptions[this.menuOptions.length - 1].selectorY);
         }
-    } else if (this.input.keyboard.checkDown(this.cursors!.space, 250)) {
+    } else if (this.input.keyboard.checkDown(this.cursors!.space, 100)) {
       this.sound.play('scene-switch');
       this.time.delayedCall(750, () => {
         this.scene.start(this.menuOptions[current].sceneName);

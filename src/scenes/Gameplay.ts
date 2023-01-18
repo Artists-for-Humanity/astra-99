@@ -103,9 +103,7 @@ export default class Gameplay extends Scene {
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     directories.beatmaps.forEach((map) => {
       try {
-        this.load.audio(`beatmap-audio-${map}`, new URL(`http://127.0.0.1:8080/assets/beatmaps/${map}/audio.mp3`, import.meta.url).href).on('complete', () => {
-          console.log('done???');
-        });
+        this.load.audio(`beatmap-audio-${map}`, new URL(`http://127.0.0.1:8080/assets/beatmaps/${map}/audio.mp3`, import.meta.url).href);
         this.load.text(`beatmap-${map}`, new URL(`http://127.0.0.1:8080/assets/beatmaps/${map}/beatmap.osu`, import.meta.url).href);
       } catch (err) {
         console.log(err);
@@ -204,9 +202,8 @@ export default class Gameplay extends Scene {
     this.gameData.scrollSpeed =
       Math.abs(this.receptorBody!.getChildren()[0].body.position.y - this.map!.getChildren()[0].body.position.y) / 750;
 
-    const baselineEditor = 10; // 40.75;
     this.gameData.baseline = this.physics.add
-      .staticSprite(800, this.receptorBody.getChildren()[0].body.position.y + baselineEditor, 'baseline-calibrator')
+      .staticSprite(800, this.receptorBody.getChildren()[0].body.position.y + 10, 'baseline-calibrator')
       .setVisible(false)
       .body.position.y;
 
@@ -301,7 +298,6 @@ export default class Gameplay extends Scene {
 
   judgeNote(noteY: number, baseline: number) {
     const judgement = Math.abs(noteY - baseline);
-    console.log(judgement);
     const result = (() => {
       // returning miss notes
       if (noteY === 0) {
