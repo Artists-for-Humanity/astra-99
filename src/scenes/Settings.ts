@@ -1,4 +1,4 @@
-import { GameObjects, Scene, Types } from 'phaser';
+import { GameObjects, Scene, Types, Math } from 'phaser';
 import DirectoryManager from '../managers/DirectoryManager';
 import WebFontFile from '../managers/WebFontLoader';
 
@@ -12,9 +12,20 @@ interface Setting {
   gameObject?: GameObjects.Group;
 }
 
+interface OptionWidget {
+  name: string,
+  widget: GameObjects.Group,
+  active: boolean,
+  onUp: () => void,
+  onDown: () => void,
+}
+
+const settingIds = ['OFFSET', 'SCROLLSPEED', 'VOLUME'] as const;
+
 export default class Settings extends Scene {
   controls?: Types.Input.Keyboard.CursorKeys;
   settings: Setting[];
+  allOptions: OptionWidget[];
   constructor() {
     super({ key: 'Settings' });
     this.controls;
@@ -41,13 +52,14 @@ export default class Settings extends Scene {
         gameObject: undefined,
       },
     ];
+    this.allOptions = [];
   }
 
   preload() {
     directories.getImages('settings').forEach(image => {
       this.load.image(image.name, new URL(`http://127.0.0.1:8080/assets/images/${image.category}/${image.name}.png`, import.meta.url).href);
     });
-    this.load.addFile(new WebFontFile(this.load, 'Audiowide', 'google'));
+    this.load.addFile(new WebFontFile(this.load, ['Audiowide', 'Orbitron'], 'google'));
   }
 
   create() {
@@ -55,6 +67,12 @@ export default class Settings extends Scene {
     // settings: offset, scroll speed
     if (!localStorage.getItem('offset')) {
       localStorage.setItem('offset', `${0}`);
+    }
+    if (!localStorage.getItem('scrollspeed')) {
+      localStorage.setItem('scrollspeed', `${20}`);
+    }
+    if (!localStorage.getItem('volume')) {
+      localStorage.setItem('volume', `${1}`);
     }
 
     this.add.text(800 - (495 / 2), 2, 'OPTIONS', {
@@ -73,21 +91,168 @@ export default class Settings extends Scene {
     for (let i = 0; i < this.settings.length; i++) {
       const j = i - 1;
       const setting = this.settings[i];
-      setting.gameObject = this.add.group();
+      // setting.gameObject = this.add.group();
 
-      this.add.text(800 + (525 * j) - (350 / (1.05 * 2)), 200, setting.name, {
+      const title = this.add.text(800 + (525 * j) - (350 / (1.05 * 2)), 200, setting.name, {
         fixedWidth: 325,
         align: 'center',
         fontFamily: 'Audiowide',
         fontSize: '64px',
       });
+
+      const widget = this.getWidget((setting.id as typeof settingIds[number]), new Math.Vector2(title.getCenter().x, 500), title);
+      this.allOptions.push(widget);
     }
     // this.add.text(number, number, 'OFFSET', {
     //   fontFamily: 'Audiowide',
 
     // });
   }
-  getWidget(settingName: string) {
-    // todo: make a switch statement that loads a different widget (settings container) for each setting (that way it's extra customized and stuff)
+
+  update() {
+    // CONTROLS
+    if (this.input.keyboard.checkDown(this.controls!.up, 300)) {
+      this.allOptions.find(option => option.active)!.onUp();
+    } else if (this.input.keyboard.checkDown(this.controls!.down, 300)) {
+      this.allOptions.find(option => option.active)!.onDown();
+    } else if (this.input.keyboard.checkDown(this.controls!.right, 100)) {
+      const current = this.allOptions.find(option => option.active);
+      const behind = this.allOptions.findIndex(option => option.active) - 1;
+      if (current && this.allOptions[behind]) {
+        current!.active = false;
+        console.log(this.allOptions[behind]);
+        if (this.allOptions[behind] !== undefined) {
+          this.allOptions[behind].active = true;
+          for (const option of this.allOptions) {
+            option.widget.incX(525);
+          }
+        }
+      }
+    } else if (this.input.keyboard.checkDown(this.controls!.left, 100)) {
+      const current = this.allOptions.find(option => option.active);
+      const front = this.allOptions.findIndex(option => option.active) + 1;
+      if (current && this.allOptions[front]) {
+        current.active = false;
+        console.log(this.allOptions[front]);
+        if (this.allOptions[front] !== undefined) {
+          this.allOptions[front].active = true;
+          for (const option of this.allOptions) {
+            option.widget.incX(-525);
+          }
+        }
+      }
+    }
   }
+
+  getWidget(settingName: typeof settingIds[number], location: Math.Vector2, title: GameObjects.Text): OptionWidget {
+    // creates a custom widget for each property
+    switch (settingName) {
+      case 'OFFSET': {
+        const propertyText = this.add.text(location.x, 500, (localStorage.getItem('offset') || '0'), {
+          fontSize: '64px',
+          align: 'center',
+          fontStyle: '600',
+          fontFamily: 'Orbitron',
+        }).setOrigin(0.5);
+        
+        return {
+          name: 'offset',
+          widget: this.add.group([title, propertyText]),
+          active: false,
+          onUp: () => {
+            const offset = this.settings.find(property => property.id === settingName);
+            offset!.value++;
+            localStorage.setItem('offset', `${offset!.value}`);
+            propertyText.setText(`${offset!.value}`);
+          },
+          onDown: () => {
+            const offset = this.settings.find(property => property.id === settingName);
+            offset!.value--;
+            localStorage.setItem('offset', `${offset!.value}`);
+            propertyText.setText(`${offset!.value}`);
+          },
+        };
+      }
+      case 'SCROLLSPEED': {
+        const propertyText = this.add.text(location.x, 500, (localStorage.getItem('scrollspeed') || '20'), {
+          fontSize: '64px',
+          align: 'center',
+          fontStyle: '600',
+          fontFamily: 'Orbitron',
+        }).setOrigin(0.5);
+
+        return {
+          name: 'scrollspeed',
+          widget: this.add.group([title, propertyText]),
+          active: true,
+          onUp: () => {
+            const scrollSpeed = this.settings.find(property => property.id === settingName);
+            if (this.input.keyboard.checkDown(this.controls!.shift)) {
+              scrollSpeed!.value += 0.5;
+            } else {
+              scrollSpeed!.value++;
+            }
+            localStorage.setItem('scrollspeed', `${scrollSpeed!.value}`);
+            propertyText.setText(`${scrollSpeed!.value}`);
+          },
+          onDown: () => {
+            const scrollSpeed = this.settings.find(property => property.id === settingName);
+            if (this.input.keyboard.checkDown(this.controls!.shift)) {
+              scrollSpeed!.value -= 0.5;
+            } else {
+              scrollSpeed!.value--;
+            }
+            localStorage.setItem('scrollspeed', `${scrollSpeed!.value}`);
+            propertyText.setText(`${scrollSpeed!.value}`);
+          },
+        };
+      }
+      case 'VOLUME': {
+        const propertyText = this.add.text(location.x, 500, ((parseFloat(localStorage.getItem('volume')!) * 100).toString() || this.settings[2].default.toString()), {
+          fontSize: '64px',
+          align: 'center',
+          fontStyle: '600',
+          fontFamily: 'Orbitron',
+        }).setOrigin(0.5);
+
+        return {
+          name: 'volume',
+          widget: this.add.group([title, propertyText]),
+          active: false,
+          onUp: () => {
+            const volume = this.settings.find(property => property.id === settingName);
+            if (volume!.value < 100) {
+              if (this.input.keyboard.checkDown(this.controls!.shift)) {
+                volume!.value += 0.5;
+              } else {
+                volume!.value++;
+              }
+              if (volume!.value + 1 >= 100) {
+                volume!.value = 100;
+              }
+            }
+            localStorage.setItem('volume', `${volume!.value / 100}`);
+            propertyText.setText(`${volume!.value}`);
+            this.sound.volume = parseFloat(localStorage.getItem('volume')!);
+          },
+          onDown: () => {
+            const volume = this.settings.find(property => property.id === settingName);
+            if (volume!.value > 0) {
+              if (this.input.keyboard.checkDown(this.controls!.shift)) {
+                volume!.value -= 0.5;
+              } else {
+                volume!.value--;
+              }
+              if (volume!.value - 1 <= 0) {
+                volume!.value = 0;
+              }
+            }
+            localStorage.setItem('volume', `${volume!.value / 100}`);
+            this.sound.volume = parseFloat(localStorage.getItem('volume')!);
+            propertyText.setText(`${volume!.value}`);
+          },
+        };
+      }
+      }
+    }
 }

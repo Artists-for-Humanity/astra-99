@@ -126,7 +126,7 @@ export default class Gameplay extends Scene {
     this.beatmapAudio = (this.sound.add(`beatmap-audio-${data.songId}`) as Sound.WebAudioSound);
     this.beatmap = Beatmap(this.cache.text.get(`beatmap-${data.songId}`));
     this.lastNote = this.beatmap[this.beatmap.length - 1];
-    this.keybinds = this.input.keyboard.addKeys('Q,W,O,P');
+    this.keybinds = this.input.keyboard.addKeys('Q,W,O,P,SHIFT');
     this.menuControls = this.input.keyboard.addKey('SPACE');
 
     // building the rhythm game track and the "chutes" (basically columns) for the notes
