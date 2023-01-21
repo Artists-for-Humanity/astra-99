@@ -29,6 +29,13 @@ const Tracks: Song[] = [
     album: 'Welcome To The Wired!',
     bpm: 180,
   },
+  {
+    id: '004',
+    title: 'Go Beyond!!',
+    artist: 'ill fill this in later',
+    source: 'beatMania something something',
+    bpm: 200,
+  },
 ];
 
 export default class SongList {
