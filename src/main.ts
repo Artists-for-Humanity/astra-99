@@ -4,6 +4,7 @@ import GameplayResults from './scenes/GameplayResults';
 import Gameplay from './scenes/Gameplay';
 import SongSelect from './scenes/SongSelect';
 import Settings from './scenes/Settings';
+import DifficultySelect from './scenes/DifficultySelect';
 
 import ButtonPlugin from 'phaser3-rex-plugins/plugins/button-plugin.js';
 
@@ -33,7 +34,7 @@ const config: Types.Core.GameConfig = {
   audio: {
     disableWebAudio: false,
   },
-  scene: [MainMenu, Settings, SongSelect, Gameplay, GameplayResults],
+  scene: [MainMenu, Settings, SongSelect, DifficultySelect, Gameplay, GameplayResults],
 };
 
 new Game(config);

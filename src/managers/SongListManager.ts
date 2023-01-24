@@ -1,3 +1,5 @@
+const difficulties = ['light', 'hyper', 'extreme'] as const;
+
 interface Song {
   id: string,
   title: string,
@@ -5,6 +7,18 @@ interface Song {
   album?: string,
   source?: string,
   bpm: number,
+  difficulties: {
+    total: typeof difficulties[number][],
+    light?: {
+      level: number,
+    },
+    hyper?: {
+      level: number,
+    },
+    extreme?: {
+      level: number,
+    }
+  }
 }
 
 const Tracks: Song[] = [
@@ -14,27 +28,59 @@ const Tracks: Song[] = [
     artist: 'Kaneko Chiharu',
     source: 'SDVX Heavenly Haven',
     bpm: 280,
+    difficulties: {
+      total: ['light', 'hyper', 'extreme'],
+    },
   },
   {
     id: '002',
-    title: 'Let\'s All Love Lain',
-    artist: 'TOKYOPILL',
-    album: 'Abandon the Flesh!',
+    title: 'Bangin\' Burst',
+    artist: 'Camellia',
+    source: 'SOUND VOLTEX II -infinite infection-',
     bpm: 171,
+    difficulties: {
+      total: ['light', 'hyper', 'extreme'],
+    },
   },
   {
     id: '003',
-    title: 'DESTROY The Wired',
-    artist: 'TOKYOPILL',
-    album: 'Welcome To The Wired!',
+    title: 'Angellic Jelly',
+    artist: 't+pazolite',
+    source: 'SOUND VOLTEX III GRAVITY WARS',
     bpm: 180,
+    difficulties: {
+      total: ['light', 'hyper', 'extreme'],
+    },
   },
   {
     id: '004',
     title: 'Go Beyond!!',
-    artist: 'ill fill this in later',
-    source: 'beatMania something something',
+    artist: 'Ryu* Vs. Sota',
+    source: 'beatmania IIDX 13 DistorteD CS',
     bpm: 200,
+    difficulties: {
+      total: ['light', 'hyper', 'extreme'],
+    },
+  },
+  {
+    id: '005',
+    title: 'C18H27NO3',
+    artist: 'Team Grimoire',
+    bpm: 0,
+    source: 'SOUND VOLTEX II -infinite infection-',
+    difficulties: {
+      total: ['light', 'hyper', 'extreme'],
+    },
+  },
+  {
+    id: '006',
+    title: 'BLACK or WHITE?',
+    artist: 'BlackYooh vs. siromaru',
+    source: 'SOUND VOLTEX II -infinite infection-',
+    bpm: 0,
+    difficulties: {
+      total: ['light', 'hyper', 'extreme'],
+    },
   },
 ];
 

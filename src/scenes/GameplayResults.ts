@@ -1,10 +1,11 @@
-import { Scene } from 'phaser';
+import { Scene, Types } from 'phaser';
 import DirectoryManager from '../managers/DirectoryManager';
 import WebFontFile from '../managers/WebFontLoader';
 const directories = new DirectoryManager();
 
 export default class GameplayResults extends Scene {
   resultsData: any;
+  cursors?: Types.Input.Keyboard.CursorKeys;
 
   constructor() {
     super({ key: 'GameplayResults' });
@@ -41,6 +42,7 @@ export default class GameplayResults extends Scene {
   }
 
   create() {
+    this.cursors = this.input.keyboard.createCursorKeys();
     this.add.image(1600 / 4, 1000 / 2, 'character-ranking').setScale(1.25);
 
     const ranking = () => {
@@ -158,6 +160,8 @@ export default class GameplayResults extends Scene {
     }).setPadding(16);
   }
   update() {
-    // updating stuff
+    if (this.input.keyboard.checkDown(this.cursors!.shift, 10)) {
+      this.scene.start('SongSelect');
+    }
   }
 }

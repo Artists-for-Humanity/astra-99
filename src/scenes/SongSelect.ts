@@ -97,12 +97,16 @@ export default class SongSelect extends Scene {
       const songSelected = songlist.getSongById(
         (this.activeSong?.getByName('song-id') as GameObjects.Text).text || '001',
       );
-      this.scene.start('Gameplay', {
+      this.scene.start('DifficultySelect', {
         songId: songSelected!.id,
         songArtist: songSelected!.artist,
         songTitle: songSelected!.title,
         bpm: songSelected!.bpm,
       });
+    }
+
+    if (this.input.keyboard.checkDown(this.gameStart!.shift, 100)) {
+      this.scene.start('Menu');
     }
   }
 }

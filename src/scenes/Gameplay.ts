@@ -100,11 +100,14 @@ export default class Gameplay extends Scene {
   }
 
   preload() {
+    const songlist = new SongList();
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     directories.beatmaps.forEach((map) => {
       try {
         this.load.audio(`beatmap-audio-${map}`, new URL(`http://127.0.0.1:8080/assets/beatmaps/${map}/audio.mp3`, import.meta.url).href);
-        this.load.text(`beatmap-${map}`, new URL(`http://127.0.0.1:8080/assets/beatmaps/${map}/beatmap.osu`, import.meta.url).href);
+        for (const diff of songlist.getSongById(map)!.difficulties.total) {
+          this.load.text(`beatmap-${map}-${diff}`, new URL(`http://127.0.0.1:8080/assets/beatmaps/${map}/${diff}.osu`, import.meta.url).href);
+        }
       } catch (err) {
         console.log(err);
       }
@@ -124,7 +127,7 @@ export default class Gameplay extends Scene {
   create(data: any) {
     this.songId = data.songId;
     this.beatmapAudio = (this.sound.add(`beatmap-audio-${data.songId}`) as Sound.WebAudioSound);
-    this.beatmap = Beatmap(this.cache.text.get(`beatmap-${data.songId}`));
+    this.beatmap = Beatmap(this.cache.text.get(`beatmap-${data.songId}-${data.difficulty}`));
     this.lastNote = this.beatmap[this.beatmap.length - 1];
     this.keybinds = this.input.keyboard.addKeys('Q,W,O,P,SHIFT');
     this.menuControls = this.input.keyboard.addKey('SPACE');

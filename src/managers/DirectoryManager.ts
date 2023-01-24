@@ -4,6 +4,7 @@ interface Images {
   gameplayResults: string[];
   songSelect: string[];
   settings: string[];
+  difficultySelect: string[];
 }
 
 interface ImageItem {
@@ -37,9 +38,10 @@ export default class DirectoryManager {
       ],
       gameplayResults: ['character-ranking', 'ranking-X', 'ranking-S', 'ranking-A', 'ranking-B', 'ranking-C', 'ranking-D' ],
       songSelect: ['songlist-item', 'songlist-stats', 'play-song', 'song-selector'],
+      difficultySelect: ['light-bg', 'hyper-bg', 'extreme-bg', 'trigger-prompt'],
       settings: ['setting-active-bg', 'setting-inactive-bg', 'shadow'],
     };
-    this.beatmaps = ['001', '002', '003'];
+    this.beatmaps = ['001', '002', '003', '004', '005', '006'];
     this.fx = ['scene-switch.wav', 'enter-game.wav'];
   }
 
