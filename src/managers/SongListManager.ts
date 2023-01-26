@@ -30,6 +30,15 @@ const Tracks: Song[] = [
     bpm: 280,
     difficulties: {
       total: ['light', 'hyper', 'extreme'],
+      light: {
+        level: 9,
+      },
+      hyper: {
+        level: 12,
+      },
+      extreme: {
+        level: 16,
+      },
     },
   },
   {
@@ -40,6 +49,15 @@ const Tracks: Song[] = [
     bpm: 171,
     difficulties: {
       total: ['light', 'hyper', 'extreme'],
+      light: {
+        level: 9,
+      },
+      hyper: {
+        level: 12,
+      },
+      extreme: {
+        level: 16,
+      },
     },
   },
   {
@@ -50,6 +68,15 @@ const Tracks: Song[] = [
     bpm: 180,
     difficulties: {
       total: ['light', 'hyper', 'extreme'],
+      light: {
+        level: 9,
+      },
+      hyper: {
+        level: 12,
+      },
+      extreme: {
+        level: 16,
+      },
     },
   },
   {
@@ -60,6 +87,15 @@ const Tracks: Song[] = [
     bpm: 200,
     difficulties: {
       total: ['light', 'hyper', 'extreme'],
+      light: {
+        level: 9,
+      },
+      hyper: {
+        level: 12,
+      },
+      extreme: {
+        level: 16,
+      },
     },
   },
   {
@@ -70,6 +106,15 @@ const Tracks: Song[] = [
     source: 'SOUND VOLTEX II -infinite infection-',
     difficulties: {
       total: ['light', 'hyper', 'extreme'],
+      light: {
+        level: 9,
+      },
+      hyper: {
+        level: 12,
+      },
+      extreme: {
+        level: 16,
+      },
     },
   },
   {
@@ -80,6 +125,15 @@ const Tracks: Song[] = [
     bpm: 0,
     difficulties: {
       total: ['light', 'hyper', 'extreme'],
+      light: {
+        level: 9,
+      },
+      hyper: {
+        level: 12,
+      },
+      extreme: {
+        level: 16,
+      },
     },
   },
 ];

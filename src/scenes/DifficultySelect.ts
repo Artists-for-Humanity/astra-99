@@ -1,4 +1,4 @@
-import { Scene, Types, Math as PhaserMath } from 'phaser';
+import { Scene, Types, Math as PhaserMath, GameObjects } from 'phaser';
 import WebFontFile from '../managers/WebFontLoader';
 import DirectoryManager from '../managers/DirectoryManager';
 import SongList from '../managers/SongListManager';
@@ -6,9 +6,9 @@ import SongList from '../managers/SongListManager';
 const directories = new DirectoryManager();
 const difficulties = ['light', 'hyper', 'extreme'] as const;
 const diffLocationMap: { vector: PhaserMath.Vector2, color: string}[] = [
-  { vector: new PhaserMath.Vector2(51, 95), color: '' },
-  { vector: new PhaserMath.Vector2(335, 328), color: '' },
-  { vector: new PhaserMath.Vector2(51, 555), color: '' },
+  { vector: new PhaserMath.Vector2(51, 95), color: '#35CF72' },
+  { vector: new PhaserMath.Vector2(335, 328), color: '#29A5FF' },
+  { vector: new PhaserMath.Vector2(51, 555), color: '#AD00FF' },
 ];
 const songlist = new SongList();
 
@@ -21,9 +21,11 @@ interface SongData {
 export default class DifficultySelect extends Scene {
   controls?: Types.Input.Keyboard.CursorKeys;
   songData?: SongData;
-  difficulty?: typeof difficulties[number];
+  difficulty: typeof difficulties[number];
+  diffDisplay?: GameObjects.Text;
   constructor() {
     super({ key: 'DifficultySelect' });
+    this.difficulty = 'light';
   }
   preload() {
     this.load.addFile(new WebFontFile(this.load, ['Audiowide', 'Share Tech'], 'google'));
@@ -53,30 +55,31 @@ export default class DifficultySelect extends Scene {
   }
 
   create() {
+    
     const song = songlist.getSongById(this.songData!.songId);
     this.controls = this.input.keyboard.createCursorKeys();
     // const lightDifficulty = this.add.container(51, 95);
     for (const diff of difficulties) {
       const difficulty = diffLocationMap[difficulties.indexOf(diff)];
-      if (song!.difficulties.total.includes(diff)) {
-        const background = this.add.image(difficulty.vector.x, difficulty.vector.y, `${diff}-bg`).setOrigin(0);
-        this.add.text(background.getCenter().x, background.getCenter().y, song!.difficulties[diff]!.level.toString());
-      } else {
+      if (!song!.difficulties.total.includes(diff)) {
         const background = this.add.image(difficulty.vector.x, difficulty.vector.y, `${diff}-bg`).setOrigin(0).setAlpha(0.6);
         this.add.text(background.getCenter().x, background.getCenter().y, '0', {
-
+          color: '#FFF',
+          font: '96px Audiowide',
+          stroke: difficulty.color,
+          strokeThickness: 10,
+        }).setAlpha(0.6).setOrigin(0.5, 0.3);
+      } else {
+        console.log(song?.difficulties);
+        const background = this.add.image(difficulty.vector.x, difficulty.vector.y, `${diff}-bg`).setOrigin(0).setAlpha(1);
+        this.add.text(background.getCenter().x, background.getCenter().y, song!.difficulties[diff]!.level.toString() || '0', {
+          color: '#FFF',
+          font: '96px Audiowide',
+          stroke: difficulty.color,
+          strokeThickness: 10,
         }).setOrigin(0.5, 0.3);
       }
     }
-    const light = this.add.image(51, 95, 'light-bg').setOrigin(0);
-    this.add.text(light.getCenter().x, light.getCenter().y, '12', {
-      color: '#FFFFFF',
-      font: '96px Audiowide',
-      stroke: '#35cf72',
-      strokeThickness: 10,
-    }).setOrigin(0.5, 0.3);
-    const hyper = this.add.image(335, 328, 'hyper-bg').setOrigin(0);
-    const extreme = this.add.image(51, 555, 'extreme-bg').setOrigin(0);
     this.add.image(1600, 1000 - 65, 'trigger-prompt').setOrigin(1, 1);
 
     this.add.text(1600, 0, 'DIFFICULTY SELECT', {
@@ -97,15 +100,33 @@ export default class DifficultySelect extends Scene {
       fontFamily: 'Audiowide',
       fontSize: '64px',
     }).setOrigin(1, 0);
+
+    this.diffDisplay = this.add.text(1600, 700, this.difficulty.toUpperCase(), {
+      align: 'right',
+      color: '#fff',
+      font: '64px Audiowide',
+    }).setOrigin(1, 0);
   }
 
   update() {
     if (this.input.keyboard.checkDown(this.controls!.up, 200)) {
-      console.log('up');
+      const current = difficulties.indexOf(this.difficulty);
+      if (difficulties[current - 1]) {
+        this.difficulty = difficulties[current - 1];
+      } else {
+        this.difficulty = difficulties[2];
+      }
+      this.diffDisplay!.setText(this.difficulty.toUpperCase());
     }
 
     if (this.input.keyboard.checkDown(this.controls!.down, 200)) {
-      console.log('down');
+      const current = difficulties.indexOf(this.difficulty);
+      if (difficulties[current + 1]) {
+        this.difficulty = difficulties[current + 1];
+      } else {
+        this.difficulty = difficulties[0];
+      }
+      this.diffDisplay!.setText(this.difficulty.toUpperCase());
     }
 
     if (this.input.keyboard.checkDown(this.controls!.space, 100)) {
