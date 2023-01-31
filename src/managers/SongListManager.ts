@@ -102,7 +102,7 @@ const Tracks: Song[] = [
     id: '005',
     title: 'C18H27NO3',
     artist: 'Team Grimoire',
-    bpm: 0,
+    bpm: 210,
     source: 'SOUND VOLTEX II -infinite infection-',
     difficulties: {
       total: ['light', 'hyper', 'extreme'],
@@ -122,7 +122,7 @@ const Tracks: Song[] = [
     title: 'BLACK or WHITE?',
     artist: 'BlackYooh vs. siromaru',
     source: 'SOUND VOLTEX II -infinite infection-',
-    bpm: 0,
+    bpm: 185,
     difficulties: {
       total: ['light', 'hyper', 'extreme'],
       light: {

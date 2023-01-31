@@ -32,6 +32,7 @@ export default class DirectoryManager {
         'hp-drain',
         'note-hold',
         'note-receptor',
+        'note-end',
         'note',
         'track',
         'chute-enabled',

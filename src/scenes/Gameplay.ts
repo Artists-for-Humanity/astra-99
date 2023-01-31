@@ -1,4 +1,4 @@
-import { Scene, GameObjects, Sound } from 'phaser';
+import { Scene, GameObjects, Sound, Input } from 'phaser';
 import DirectoryManager from '../managers/DirectoryManager';
 import Beatmap from '../managers/BeatmapManager';
 import Conductor from '../managers/Conductor';
@@ -40,6 +40,7 @@ export default class Gameplay extends Scene {
   beatmap?: BeatmapObj;
   lastNote?: Note;
   map?: Phaser.Physics.Arcade.Group;
+  sliderMap?: typeof this.map;
   receptorBody?: Phaser.Physics.Arcade.StaticGroup;
   timingPoints: { time: number; bpm: number }[]; // todo: improve syncing
   gameData: GameData;
@@ -237,7 +238,6 @@ export default class Gameplay extends Scene {
           this.map!.remove(missedNote, true, true);
           this.judgeNote(0, this.gameData.baseline);
         });
-
       for (const key of ['Q', 'W', 'O', 'P']) {
         this.input.keyboard.on('keydown-' + key, () => {
           const column = ['Q', 'W', 'O', 'P'].indexOf(key);
@@ -385,5 +385,15 @@ export default class Gameplay extends Scene {
         n300: this.judgements.n300,
       });
     });
+  }
+
+  updateSlider() {
+    for (const key of [81, 87, 79, 80]) {
+      if (this.input.keyboard.checkDown(new Input.Keyboard.Key(this.input.keyboard, key)) && this.physics.overlap(this.sliderMap!)) {
+        this.gameData.score.value += 5;
+        this.updateData(300);
+        // todo: link this to the slidermap in the mapbuilder update
+      }
+    }
   }
 }
