@@ -19,13 +19,13 @@ export default class MapBuilder {
   public conductor: Conductor;
   public baseline: number;
   public sliderMap: Physics.Arcade.Group;
-  constructor(scene: Scene, beatmap: BeatmapSet, conductor: Conductor, baseline: number) {
+  constructor(scene: Scene, beatmap: BeatmapSet, conductor: Conductor, baseline: number, map: Physics.Arcade.Group) {
     this.beatmap = beatmap;
     this.spawnedNotes = [];
     this.spawnedEndNotes = [];
     this.crotchet = conductor.crotchet;
     this.scene = scene;
-    this.physicalMap = scene.physics.add.group();
+    this.physicalMap = map;
     this.sliderMap = scene.physics.add.group();
     this.conductor = conductor;
     this.baseline = baseline;
@@ -80,6 +80,7 @@ export default class MapBuilder {
     }
 
     this.physicalMap.incY(parseFloat(localStorage.getItem('scrollspeed')!));
+    this.sliderMap.incY(parseFloat(localStorage.getItem('scrollspeed')!));
     return this.physicalMap;
   }
 
@@ -106,12 +107,10 @@ export default class MapBuilder {
     const noteToSpawn = this.spawnedNotes.includes({ edge: note.startTime }) || this.spawnedEndNotes.includes({ edge: note.endTime });
     if (!noteToSpawn) { // if the note that is queued up to spawn isnt already loaded
       if (note.startTime === note.edge) {
-        console.log(`start edge spawning: ${note.startTime}`);
         this.spawnedNotes.push({ edge: note.startTime });
         const newNote = this.scene.physics.add.sprite(columnValues[note.column] + (parseFloat(localStorage.getItem('offset')!) * -1), -(this.baseline), 'note-end').setName(`note-${note.startTime}-${note.column}`);
         this.sliderMap.add(newNote);
       } else if (note.endTime === note.edge) {
-        console.log(`end edge spawning: ${note.endTime}`);
         this.spawnedEndNotes.push({ edge: note.endTime });
         const newNote = this.scene.physics.add.sprite(columnValues[note.column] + (parseFloat(localStorage.getItem('offset')!) * -1), -(this.baseline), 'note-end').setName(`note-${note.endTime}-${note.column}`);
         this.sliderMap.add(newNote);

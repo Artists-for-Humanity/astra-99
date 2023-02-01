@@ -130,7 +130,13 @@ export default class Gameplay extends Scene {
     this.beatmapAudio = (this.sound.add(`beatmap-audio-${data.songId}`) as Sound.WebAudioSound);
     this.beatmap = Beatmap(this.cache.text.get(`beatmap-${data.songId}-${data.difficulty}`));
     this.lastNote = this.beatmap[this.beatmap.length - 1];
-    this.keybinds = this.input.keyboard.addKeys('Q,W,O,P,SHIFT');
+    this.keybinds = this.input.keyboard.addKeys({
+      Q: Input.Keyboard.KeyCodes.Q,
+      W: Input.Keyboard.KeyCodes.W,
+      O: Input.Keyboard.KeyCodes.O,
+      P: Input.Keyboard.KeyCodes.P,
+      SHIFT: Input.Keyboard.KeyCodes.SHIFT,
+    });
     this.menuControls = this.input.keyboard.addKey('SPACE');
 
     // building the rhythm game track and the "chutes" (basically columns) for the notes
@@ -159,17 +165,7 @@ export default class Gameplay extends Scene {
 
     FullTrack.moveBelow(Chutes, this.track);
     this.components = FullTrack;
-
-    // building beatmaps
-    const noteSet = this.beatmap.map((note) => {
-      const col = (this.components!.getByName('chutes') as GameObjects.Container).getByName(
-        'chute-' + note.column.toString(),
-      ) as GameObjects.Sprite;
-      const res = this.add.sprite(col.x, note.startTime * -1.21, 'note').setScale(0.95);
-      res.setName(`note-${note.startTime}`);
-      return res;
-    });
-    this.map = this.physics.add.group(noteSet, { name: 'beatmapNotes' });
+    this.map = this.physics.add.group([], { name: 'beatmapNotes' });
 
     Receptors.setDepth(2);
     this.map.setDepth(1);
@@ -203,8 +199,7 @@ export default class Gameplay extends Scene {
       this.beatmapAudio!.pause();
     }
 
-    this.gameData.scrollSpeed =
-      Math.abs(this.receptorBody!.getChildren()[0].body.position.y - this.map!.getChildren()[0].body.position.y) / 750;
+    this.gameData.scrollSpeed = parseFloat(localStorage.getItem('scrollspeed')!);
 
     this.gameData.baseline = this.physics.add
       .staticSprite(800, this.receptorBody.getChildren()[0].body.position.y + 10, 'baseline-calibrator')
@@ -214,13 +209,13 @@ export default class Gameplay extends Scene {
     this.conductor = new Conductor({
       bpm: new SongList().getSongById(this.songId)!.bpm,
     }, this.beatmapAudio!);
-    this.mapBuilder = new MapBuilder(this, this.beatmap, this.conductor, this.gameData.baseline);
+    this.mapBuilder = new MapBuilder(this, this.beatmap, this.conductor, this.gameData.baseline, this.map);
     this.events.on('shutdown', this.shutdown, this);
   }
 
   update() {
     if (this.isActiveGameplay) {
-      this.songIsOver = (this.map!.children.size === 0) && (this.lastNote!.startTime / 1000) < this.beatmapAudio!.seek;
+      this.songIsOver = !this.beatmapAudio!.isPlaying && this.beatmap![this.beatmap!.length - 1].endTime < this.beatmapAudio!.seek;
       if (this.songIsOver) {
         this.endSong();
       }
@@ -239,28 +234,34 @@ export default class Gameplay extends Scene {
           this.judgeNote(0, this.gameData.baseline);
         });
       for (const key of ['Q', 'W', 'O', 'P']) {
-        this.input.keyboard.on('keydown-' + key, () => {
+        type Keybinds = {
+          [index: string]: Input.Keyboard.Key,
+        };
+        if ((this.keybinds as Keybinds)[key].isDown) {
           const column = ['Q', 'W', 'O', 'P'].indexOf(key);
           (this.components!.getByName('chutes') as GameObjects.Container)
             .getByName('chute-' + column.toString())
             .setState(1);
 
-          if (
-            this.physics.overlap(
-              this.map!,
-              this.receptorBody!.getChildren().find((r) => r.name === `receptor-${column}`),
-            )
-          ) {
-            const recCol = this.receptorBody!.getChildren().find((r) => r.name === `receptor-${column}`);
-            this.deleteNote(this.map!, recCol);
+          if (this.physics.overlap(this.map!, this.receptorBody?.getChildren().find(r => r.name === `receptor-${column}`))) {
+            try {
+              const recCol = this.receptorBody!.getChildren().find((r) => r.name === `receptor-${column}`);
+              this.deleteNote(this.map!, recCol);
+            } catch (e) {
+              console.log('error');
+            }
           }
-        });
-        this.input.keyboard.on('keyup-' + key, () => {
+
+          // if (this.physics.overlap(this.sliderMap!, this.receptorBody?.getChildren().find(r => r.name === `receptor-${column}`))) {
+          //   const recCol = this.receptorBody!.getChildren().find((r) => r.name === `receptor-${column}`);
+          //   this.deleteNote(this.sliderMap!, recCol);
+          // }
+        } else {
           const column = ['Q', 'W', 'O', 'P'].indexOf(key);
           (this.components!.getByName('chutes') as GameObjects.Container)
             .getByName('chute-' + column.toString())
             .setState(0);
-        });
+        }
       }
       (this.components!.getByName('chutes') as GameObjects.Container).iterate((chute: GameObjects.Sprite) => {
         // animate each chute on press
@@ -279,7 +280,7 @@ export default class Gameplay extends Scene {
     }
   }
 
-  shutdown() {
+  shutdown(): void {
     this.input.keyboard.shutdown();
     // adding other scene shutdown stuff to make transitions easier
   }
@@ -296,7 +297,12 @@ export default class Gameplay extends Scene {
     this.map!.remove(note!, true, true);
 
     // initiates the chain of judging notes
-    this.judgeNote(noteInput, this.gameData.baseline);
+    if ((note as GameObjects.Sprite)!.texture.key === 'note') {
+      this.judgeNote(noteInput, this.gameData.baseline);
+    } else {
+      this.updateData(this.gameData.baseline, 5);
+    }
+    
   }
 
   judgeNote(noteY: number, baseline: number) {
@@ -327,8 +333,8 @@ export default class Gameplay extends Scene {
     this.updateData(result);
   }
 
-  updateData(judgement: number) {
-    this.gameData.score.value += judgement;
+  updateData(judgement: number, score?: number) {
+    this.gameData.score.value += (!score ? judgement : score);
     this.gameData.score.text!.setText(`${this.gameData.score.value}`.padStart(7, '0'));
 
     // resets combo if it's a miss, otherwise increase the score
@@ -385,15 +391,5 @@ export default class Gameplay extends Scene {
         n300: this.judgements.n300,
       });
     });
-  }
-
-  updateSlider() {
-    for (const key of [81, 87, 79, 80]) {
-      if (this.input.keyboard.checkDown(new Input.Keyboard.Key(this.input.keyboard, key)) && this.physics.overlap(this.sliderMap!)) {
-        this.gameData.score.value += 5;
-        this.updateData(300);
-        // todo: link this to the slidermap in the mapbuilder update
-      }
-    }
   }
 }
