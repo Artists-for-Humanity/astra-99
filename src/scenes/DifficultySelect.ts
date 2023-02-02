@@ -50,7 +50,6 @@ export default class DifficultySelect extends Scene {
   }
 
   init(data: SongData) {
-    console.log(data);
     this.songData = data;
   }
 
@@ -70,7 +69,6 @@ export default class DifficultySelect extends Scene {
           strokeThickness: 10,
         }).setAlpha(0.6).setOrigin(0.5, 0.3);
       } else {
-        console.log(song?.difficulties);
         const background = this.add.image(difficulty.vector.x, difficulty.vector.y, `${diff}-bg`).setOrigin(0).setAlpha(1);
         this.add.text(background.getCenter().x, background.getCenter().y, song!.difficulties[diff]!.level.toString() || '0', {
           color: '#FFF',

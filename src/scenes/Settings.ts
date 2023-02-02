@@ -120,7 +120,6 @@ export default class Settings extends Scene {
       const behind = this.allOptions.findIndex(option => option.active) - 1;
       if (current && this.allOptions[behind]) {
         current!.active = false;
-        console.log(this.allOptions[behind]);
         if (this.allOptions[behind] !== undefined) {
           this.allOptions[behind].active = true;
           for (const option of this.allOptions) {
@@ -133,7 +132,6 @@ export default class Settings extends Scene {
       const front = this.allOptions.findIndex(option => option.active) + 1;
       if (current && this.allOptions[front]) {
         current.active = false;
-        console.log(this.allOptions[front]);
         if (this.allOptions[front] !== undefined) {
           this.allOptions[front].active = true;
           for (const option of this.allOptions) {

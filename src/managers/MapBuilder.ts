@@ -80,7 +80,7 @@ export default class MapBuilder {
     }
 
     this.physicalMap.incY(parseFloat(localStorage.getItem('scrollspeed')!));
-    this.sliderMap.incY(parseFloat(localStorage.getItem('scrollspeed')!));
+    // this.sliderMap.incY(parseFloat(localStorage.getItem('scrollspeed')!));
     return this.physicalMap;
   }
 
@@ -88,34 +88,24 @@ export default class MapBuilder {
     const noteToSpawn = this.spawnedNotes.includes(note.startTime);
     if (!noteToSpawn) { // if the note that is queued up to spawn isnt already loaded
       this.spawnedNotes.push(note.startTime);
-      if (note.endTime !== note.startTime) {
-        console.log(`start: ${note.startTime} end: ${note.endTime}`);
-      }
       const newNote = this.scene.physics.add.sprite(columnValues[note.column] + (parseFloat(localStorage.getItem('offset')!) * -1), -(this.baseline), 'note').setName(`note-${note.startTime}-${note.column}`);
       this.physicalMap.add(newNote);
-      // console.log(`spawned ${note.startTime} at ${newNote.y}`);
       note.spawned = true;
-    } // else if (noteToSpawn) {
-    //   const x = this.scene.children.list.find((n) => {
-    //     return n.name === `note-${note.startTime}-${note.column}`;
-    //   });
-    // }
+    }
   }
 
   spawnSlider(note: Note & { spawned: boolean, edge: number, }, columnValues: number[]) {
-    console.log(`${note.startTime}-${note.endTime}`, `edge: ${note.edge}`);
     const noteToSpawn = this.spawnedNotes.includes({ edge: note.startTime }) || this.spawnedEndNotes.includes({ edge: note.endTime });
     if (!noteToSpawn) { // if the note that is queued up to spawn isnt already loaded
       if (note.startTime === note.edge) {
         this.spawnedNotes.push({ edge: note.startTime });
         const newNote = this.scene.physics.add.sprite(columnValues[note.column] + (parseFloat(localStorage.getItem('offset')!) * -1), -(this.baseline), 'note-end').setName(`note-${note.startTime}-${note.column}`);
-        this.sliderMap.add(newNote);
+        this.physicalMap.add(newNote);
       } else if (note.endTime === note.edge) {
         this.spawnedEndNotes.push({ edge: note.endTime });
         const newNote = this.scene.physics.add.sprite(columnValues[note.column] + (parseFloat(localStorage.getItem('offset')!) * -1), -(this.baseline), 'note-end').setName(`note-${note.endTime}-${note.column}`);
-        this.sliderMap.add(newNote);
+        this.physicalMap.add(newNote);
       }
-      // console.log(`spawned ${note.startTime} at ${newNote.y}`);
       note.spawned = true;
     } // else if (noteToSpawn) {
     //   const x = this.scene.children.list.find((n) => {

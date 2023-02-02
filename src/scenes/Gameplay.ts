@@ -40,7 +40,6 @@ export default class Gameplay extends Scene {
   beatmap?: BeatmapObj;
   lastNote?: Note;
   map?: Phaser.Physics.Arcade.Group;
-  sliderMap?: typeof this.map;
   receptorBody?: Phaser.Physics.Arcade.StaticGroup;
   timingPoints: { time: number; bpm: number }[]; // todo: improve syncing
   gameData: GameData;
@@ -215,7 +214,7 @@ export default class Gameplay extends Scene {
 
   update() {
     if (this.isActiveGameplay) {
-      this.songIsOver = !this.beatmapAudio!.isPlaying && this.beatmap![this.beatmap!.length - 1].endTime < this.beatmapAudio!.seek;
+      this.songIsOver = !this.beatmapAudio!.isPlaying || this.beatmap![this.beatmap!.length - 1].endTime < this.beatmapAudio!.seek;
       if (this.songIsOver) {
         this.endSong();
       }
@@ -251,11 +250,6 @@ export default class Gameplay extends Scene {
               console.log('error');
             }
           }
-
-          // if (this.physics.overlap(this.sliderMap!, this.receptorBody?.getChildren().find(r => r.name === `receptor-${column}`))) {
-          //   const recCol = this.receptorBody!.getChildren().find((r) => r.name === `receptor-${column}`);
-          //   this.deleteNote(this.sliderMap!, recCol);
-          // }
         } else {
           const column = ['Q', 'W', 'O', 'P'].indexOf(key);
           (this.components!.getByName('chutes') as GameObjects.Container)
@@ -300,7 +294,7 @@ export default class Gameplay extends Scene {
     if ((note as GameObjects.Sprite)!.texture.key === 'note') {
       this.judgeNote(noteInput, this.gameData.baseline);
     } else {
-      this.updateData(this.gameData.baseline, 5);
+      this.updateData(null, 5);
     }
     
   }
@@ -333,8 +327,8 @@ export default class Gameplay extends Scene {
     this.updateData(result);
   }
 
-  updateData(judgement: number, score?: number) {
-    this.gameData.score.value += (!score ? judgement : score);
+  updateData(judgement?: number | null, score?: number) {
+    this.gameData.score.value += (!score ? judgement! : score);
     this.gameData.score.text!.setText(`${this.gameData.score.value}`.padStart(7, '0'));
 
     // resets combo if it's a miss, otherwise increase the score
@@ -368,9 +362,10 @@ export default class Gameplay extends Scene {
           return 0;
       }
     };
-
-    this.gameData.accuracy.arrayVersion.push(acc(judgement));
-
+    if (judgement) {
+      this.gameData.accuracy.arrayVersion.push(acc(judgement));
+    }
+    
     // averages out the accuracy
     this.gameData.accuracy.value =
       this.gameData.accuracy.arrayVersion.reduce((a, b) => a + b) / this.gameData.accuracy.arrayVersion.length;
