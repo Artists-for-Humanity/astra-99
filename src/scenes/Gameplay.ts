@@ -140,7 +140,7 @@ export default class Gameplay extends Scene {
 
     // building the rhythm game track and the "chutes" (basically columns) for the notes
     this.track = this.add.sprite(center.x, center.y /* - (99 / 4) */, 'track').setName('track');
-    const chuteMapping = [this.track.x - 199, this.track.x - 66, this.track.x + 66, this.track.x + 199];
+    const chuteMapping = [this.track.getLeftCenter().x - this.track.width / 4, this.track.x - 66, this.track.x + 66, this.track.x + 199];
     const Chutes = this.add.container(
       0,
       0,
