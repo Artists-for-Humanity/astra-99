@@ -35,12 +35,14 @@ export default class Gameplay extends Scene {
   track?: GameObjects.Sprite;
   beatmapAudio?: Sound.WebAudioSound;
   keybinds: unknown;
+  baseline?: GameObjects.Image;
   menuControls: unknown;
   components?: GameObjects.Container;
   beatmap?: BeatmapObj;
   lastNote?: Note;
   map?: Phaser.Physics.Arcade.Group;
   receptorBody?: Phaser.Physics.Arcade.StaticGroup;
+  chutes?: Phaser.Physics.Arcade.StaticGroup;
   timingPoints: { time: number; bpm: number }[]; // todo: improve syncing
   gameData: GameData;
   isActiveGameplay: boolean;
@@ -64,6 +66,7 @@ export default class Gameplay extends Scene {
     this.beatmap;
     this.lastNote;
     this.map;
+    this.baseline;
     this.receptorBody;
     this.timingPoints = [];
     this.gameData = {
@@ -97,6 +100,7 @@ export default class Gameplay extends Scene {
     this.conductor;
     this.mapBuilder;
     this.track;
+    this.chutes;
   }
 
   preload() {
@@ -139,36 +143,37 @@ export default class Gameplay extends Scene {
     this.menuControls = this.input.keyboard.addKey('SPACE');
 
     // building the rhythm game track and the "chutes" (basically columns) for the notes
-    this.track = this.add.sprite(center.x, center.y /* - (99 / 4) */, 'track').setName('track');
-    const chuteMapping = [this.track.getLeftCenter().x - this.track.width / 4, this.track.x - 66, this.track.x + 66, this.track.x + 199];
-    const Chutes = this.add.container(
-      0,
-      0,
+    this.track = this.add.sprite(center.x, center.y /* - (99 / 4) */, 'track').setName('track').setDepth(5);
+    const chuteMapping = [this.track.getLeftCenter().x + 10, this.track.getCenter().x, this.track.getCenter().x, this.track.getRightCenter().x - 10]; // [this.track.getCenter().x - (this.track.width * (1 / 4)), this.track.getCenter().x, this.track.getCenter().x, this.track.getRightCenter().x - (this.track.width * (1 / 4))];
+    const Chutes = this.physics.add.staticGroup(
       [0, 1, 2, 3].map((column) => {
         // each chute within the columns is referred to as its own chute ex. chute-0
-        const NextChute = this.add.sprite(chuteMapping[column], center.y - 27, 'chute');
-        NextChute.setName('chute-' + column.toString());
+        const NextChute = this.add.sprite(chuteMapping[column], center.y - 27, 'chute')
+          .setName('chute-' + column.toString())
+          .setDepth(0);
+        if (column == 1 || column == 3) {
+          NextChute.setOrigin(1, 0.5);
+        } else if (column == 0 || column == 2) {
+          NextChute.setOrigin(0, 0.5);
+        }
         return NextChute;
       }),
     );
     const Receptors = this.physics.add.staticGroup(
       [0, 1, 2, 3].map((column) => {
-        const receptor = this.physics.add.sprite(chuteMapping[column], this.game.canvas.height - 150, 'note-receptor');
-        receptor.setName('receptor-' + column.toString());
+        const receptor = this.physics.add.sprite((Chutes.getChildren()[column] as GameObjects.Sprite).getCenter().x, 800, 'note-receptor')
+          .setName('receptor-' + column.toString())
+          .setOrigin(0.5, 0)
+          .setDepth(1)
+          .setVisible(false);
         return receptor;
       }),
     );
 
     Chutes.setName('chutes');
-    const FullTrack = this.add.container(0, 0, [Chutes, this.track]);
 
-    FullTrack.moveBelow(Chutes, this.track);
-    this.components = FullTrack;
-    this.map = this.physics.add.group([], { name: 'beatmapNotes' });
-
-    Receptors.setDepth(2);
-    this.map.setDepth(1);
-    FullTrack.setDepth(0);
+    this.chutes = Chutes;
+    this.map = this.physics.add.group([], { name: 'beatmapNotes' }).setDepth(2);
 
     this.receptorBody = Receptors;
 
@@ -200,11 +205,11 @@ export default class Gameplay extends Scene {
 
     this.gameData.scrollSpeed = parseFloat(localStorage.getItem('scrollspeed')!);
 
-    this.gameData.baseline = this.physics.add
-      .staticSprite(800, this.receptorBody.getChildren()[0].body.position.y + 10, 'baseline-calibrator')
-      .setVisible(false)
-      .body.position.y;
-
+    this.baseline = this.physics.add
+      .staticSprite(800, this.receptorBody.getChildren()[0].body.gameObject.getTopCenter().y, 'baseline-calibrator')
+      .setVisible(true);
+    this.gameData.baseline = this.baseline.y;
+    console.log(this.gameData.baseline);
     this.conductor = new Conductor({
       bpm: new SongList().getSongById(this.songId)!.bpm,
     }, this.beatmapAudio!);
@@ -238,8 +243,7 @@ export default class Gameplay extends Scene {
         };
         if ((this.keybinds as Keybinds)[key].isDown) {
           const column = ['Q', 'W', 'O', 'P'].indexOf(key);
-          (this.components!.getByName('chutes') as GameObjects.Container)
-            .getByName('chute-' + column.toString())
+          this.chutes!.getChildren().find(c => c.name === `chute-${column.toString()}`)!
             .setState(1);
 
           if (this.physics.overlap(this.map!, this.receptorBody?.getChildren().find(r => r.name === `receptor-${column}`))) {
@@ -247,17 +251,16 @@ export default class Gameplay extends Scene {
               const recCol = this.receptorBody!.getChildren().find((r) => r.name === `receptor-${column}`);
               this.deleteNote(this.map!, recCol);
             } catch (e) {
-              console.log('error');
+              console.log(e);
             }
           }
         } else {
           const column = ['Q', 'W', 'O', 'P'].indexOf(key);
-          (this.components!.getByName('chutes') as GameObjects.Container)
-            .getByName('chute-' + column.toString())
+          this.chutes!.getChildren().find(c => c.name === `chute-${column.toString()}`)!
             .setState(0);
         }
       }
-      (this.components!.getByName('chutes') as GameObjects.Container).iterate((chute: GameObjects.Sprite) => {
+      (this.chutes!.getChildren() as GameObjects.Sprite[]).forEach((chute: GameObjects.Sprite) => {
         // animate each chute on press
         if (chute.state === 1) {
           chute.setTexture('chute-enabled');
@@ -310,10 +313,10 @@ export default class Gameplay extends Scene {
       if (judgement >= 150) {
         this.judgements.n50++;
         return 50;
-      } else if (judgement >= 100) {
+      } else if (judgement >= 130) {
         this.judgements.n100++;
         return 100;
-      } else if (judgement >= 50) {
+      } else if (judgement >= 85) {
         this.judgements.n200++;
         return 200;
       } else if (judgement >= 0) {
