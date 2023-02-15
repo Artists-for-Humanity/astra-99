@@ -207,8 +207,8 @@ export default class Gameplay extends Scene {
 
     this.baseline = this.physics.add
       .staticSprite(800, this.receptorBody.getChildren()[0].body.gameObject.getTopCenter().y, 'baseline-calibrator')
-      .setVisible(true);
-    this.gameData.baseline = this.baseline.y;
+      .setVisible(false);
+    this.gameData.baseline = this.baseline.getTopCenter().y;
     console.log(this.gameData.baseline);
     this.conductor = new Conductor({
       bpm: new SongList().getSongById(this.songId)!.bpm,
@@ -231,7 +231,7 @@ export default class Gameplay extends Scene {
       }
 
       this.map!.getChildren()
-        .filter((child) => child.body.position.y > this.game.canvas.height)
+        .filter((child) => child.body.position.y > 1000)
         .forEach((missedNote) => {
           this.judgements.n0++;
           this.map!.remove(missedNote, true, true);
@@ -288,7 +288,7 @@ export default class Gameplay extends Scene {
     });
 
     if (note!.state === 3) return; // this only calls the deletion and judgement once
-    const noteInput = note!.body.position.y;
+    const noteInput = note!.body.gameObject.getCenter().y;
 
     note?.setState(3);
     this.map!.remove(note!, true, true);
@@ -302,32 +302,37 @@ export default class Gameplay extends Scene {
     
   }
 
-  judgeNote(noteY: number, baseline: number) {
-    const judgement = Math.abs(noteY - baseline);
-    const result = (() => {
-      // returning miss notes
-      if (noteY === 0) {
-        return 0;
-      }
-      // actual judgement for non-missed notes
-      if (judgement >= 150) {
-        this.judgements.n50++;
-        return 50;
-      } else if (judgement >= 130) {
-        this.judgements.n100++;
-        return 100;
-      } else if (judgement >= 85) {
-        this.judgements.n200++;
-        return 200;
-      } else if (judgement >= 0) {
-        this.judgements.n300++;
-        return 300;
-      } else {
-        this.judgements.n0++;
-        return 0;
-      }
-    })();
-    this.updateData(result);
+  judgeNote(noteY: number | null, baseline: number) {
+    if (noteY === null) {
+      this.updateData(0);
+      return;
+    } else {
+      const judgement = Math.abs(noteY - baseline);
+      const result = (() => {
+        // returning miss notes
+        if (noteY === null) {
+          return 0;
+        }
+        // actual judgement for non-missed notes
+        if (judgement >= 150) {
+          this.judgements.n50++;
+          return 50;
+        } else if (judgement >= 75) {
+          this.judgements.n100++;
+          return 100;
+        } else if (judgement >= 50) {
+          this.judgements.n200++;
+          return 200;
+        } else if (judgement >= 0) {
+          this.judgements.n300++;
+          return 300;
+        } else {
+          this.judgements.n0++;
+          return 0;
+        }
+      })();
+      this.updateData(result);
+    }
   }
 
   updateData(judgement?: number | null, score?: number) {
@@ -370,8 +375,13 @@ export default class Gameplay extends Scene {
     }
     
     // averages out the accuracy
-    this.gameData.accuracy.value =
-      this.gameData.accuracy.arrayVersion.reduce((a, b) => a + b) / this.gameData.accuracy.arrayVersion.length;
+    this.gameData.accuracy.value = (() => {
+      try {
+        return this.gameData.accuracy.arrayVersion.reduce((a, b) => a + b) / this.gameData.accuracy.arrayVersion.length;
+      } catch {
+        return 100;
+      }
+    })();
 
     this.gameData.accuracy.text?.setText(`${this.gameData.accuracy.value.toFixed(2)}%`);
   }
