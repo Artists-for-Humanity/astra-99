@@ -54,14 +54,17 @@ export default class Gameplay extends Scene {
     n200: number;
     n300: number;
   };
+  plays: number;
   songId: string;
   conductor: Conductor | undefined;
   mapBuilder?: MapBuilder;
+  chain?: GameObjects.Text;
 
   constructor() {
     super({ key: 'Gameplay' });
     this.songId = '';
     this.keybinds;
+    this.chain;
     this.components;
     this.beatmap;
     this.lastNote;
@@ -93,6 +96,7 @@ export default class Gameplay extends Scene {
       n200: 0,
       n300: 0,
     };
+    this.plays = 0;
     this.isActiveGameplay = false;
     this.songIsOver = false;
     this.menuControls;
@@ -126,6 +130,10 @@ export default class Gameplay extends Scene {
         console.log(err);
       }
     });
+  }
+
+  init(data: any) {
+    console.log(data);
   }
 
   create(data: any) {
@@ -178,26 +186,33 @@ export default class Gameplay extends Scene {
     this.receptorBody = Receptors;
 
     // adding text
-    this.gameData.accuracy.text = this.add.text(this.game.canvas.width - 250, 100, '100.0%', {
+    this.gameData.accuracy.text = this.add.text(this.game.canvas.width, 100, '100.0%', {
       fontSize: '64px',
-      fontFamily: 'Arial',
-      fontStyle: 'italic',
-      align: 'right',
-    });
+      fontFamily: 'Audiowide',
+    }).setOrigin(1, 0);
 
-    this.gameData.score.text = this.add.text(this.game.canvas.width - 300, 16, '0000000', {
+    this.gameData.score.text = this.add.text(this.game.canvas.width, 16, '0000000', {
       fontSize: '72px',
-      fontFamily: 'Arial',
-      fontStyle: 'italic',
-      align: 'right',
-    });
+      fontFamily: 'Audiowide',
+    }).setOrigin(1, 0);
 
-    this.gameData.combo.text = this.add.text(this.game.canvas.width - 250, this.game.canvas.height - 100, '0x', {
+    this.gameData.combo.text = this.add.text(this.chutes.getChildren()[1].body.gameObject.getRightCenter().x, this.chutes.getChildren()[1].body.gameObject.getRightCenter().y, '0', {
       fontSize: '64px',
-      fontFamily: 'Arial',
-      fontStyle: 'italic',
-      align: 'right',
-    });
+      fontFamily: 'Audiowide',
+      stroke: '#000000',
+      strokeThickness: 15,
+      align: 'center',
+    }).setOrigin(0.5).setDepth(10);
+    // decorative
+    this.chain = this.add.text(this.gameData.combo.text.getCenter().x, this.gameData.combo.text.y - 75, '- CHAIN -', {
+      fontSize: '32px',
+      fontFamily: 'Audiowide',
+      color: '#FFFFFF',
+      stroke: '#000000',
+      strokeThickness: 15,
+      align: 'center',
+    }).setOrigin(0.5).setDepth(10);
+
     if (window.AudioContext && this.isActiveGameplay) {
       this.sound.play(`beatmap-audio-${data.songId}`);
       this.beatmapAudio!.pause();
@@ -310,11 +325,11 @@ export default class Gameplay extends Scene {
       const judgement = Math.abs(noteY - baseline);
       const result = (() => {
         // returning miss notes
-        if (noteY === null) {
+        if (noteY === null || judgement > 175) {
           return 0;
         }
         // actual judgement for non-missed notes
-        if (judgement >= 150) {
+        if (judgement >= 150 && judgement <= 175) {
           this.judgements.n50++;
           return 50;
         } else if (judgement >= 75) {
@@ -327,15 +342,14 @@ export default class Gameplay extends Scene {
           this.judgements.n300++;
           return 300;
         } else {
-          this.judgements.n0++;
-          return 0;
+          return 0; // this is so typescript doesnt complain
         }
       })();
       this.updateData(result);
     }
   }
 
-  updateData(judgement?: number | null, score?: number) {
+  updateData(judgement: number | null, score?: number) {
     this.gameData.score.value += (!score ? judgement! : score);
     this.gameData.score.text!.setText(`${this.gameData.score.value}`.padStart(7, '0'));
 
@@ -346,7 +360,36 @@ export default class Gameplay extends Scene {
       this.gameData.combo.value++;
     }
 
-    this.gameData.combo.text!.setText(`${this.gameData.combo.value}x`);
+    this.gameData.combo.text!.setText(`${this.gameData.combo.value}`);
+    if (this.judgements.n0 === 0 && this.judgements.n50 === 0 && this.judgements.n100 === 0 && this.judgements.n200 === 0) {
+      this.gameData.combo.text!
+        .setColor('#FFD583')
+        .setStroke('#000000', 15)
+        .setShadowStroke(true)
+        .setShadow(0, 0, '#FFD583', 10, true, false);
+      this.chain!.setColor('#FFD583')
+        .setStroke('#000000', 15)
+        .setShadowStroke(true)
+        .setShadow(0, 0, '#FFD583', 10, true, false);
+    } else if (this.judgements.n200 > 0 && this.judgements.n0 === 0 && this.judgements.n50 === 0 && this.judgements.n100 === 0) {
+      this.gameData.combo.text!
+        .setColor('#839DF9')
+        .setStroke('#000000', 15)
+        .setShadowStroke(true)
+        .setShadow(0, 0, '#839DF9', 10, true, false);
+      this.chain!.setColor('#839DF9')
+        .setStroke('#000000', 15)
+        .setShadowStroke(true)
+        .setShadow(0, 0, '#839DF9', 10, true, false);
+    } else if (this.judgements.n0 > 0) {
+      this.gameData.combo.text!
+        .setColor('#FFFFFF')
+        .setShadowStroke(false);
+      this.chain!
+        .setColor('#FFFFFF')
+        .setShadowStroke(false);
+    }
+    this.chain!.setX(this.gameData.combo.text!.getCenter().x);
 
     // updates the maxcombo if the current combo is more than the original
     if (this.gameData.maxCombo.value < this.gameData.combo.value) {
@@ -370,7 +413,7 @@ export default class Gameplay extends Scene {
           return 0;
       }
     };
-    if (judgement) {
+    if (judgement !== null) {
       this.gameData.accuracy.arrayVersion.push(acc(judgement));
     }
     
@@ -388,6 +431,7 @@ export default class Gameplay extends Scene {
 
   endSong() {
     this.time.delayedCall(1500, () => {
+      this.scene.stop();
       this.scene.start('GameplayResults', {
         accuracy: this.gameData.accuracy.value,
         maxCombo: this.gameData.maxCombo.value,

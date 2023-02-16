@@ -128,6 +128,7 @@ export default class DifficultySelect extends Scene {
     }
 
     if (this.input.keyboard.checkDown(this.controls!.space, 100)) {
+      this.scene.stop();
       this.scene.start('Gameplay', {
         songId: this.songData!.songId,
         songArtist: this.songData!.songArtist,
@@ -138,6 +139,7 @@ export default class DifficultySelect extends Scene {
     }
 
     if (this.input.keyboard.checkDown(this.controls!.shift, 100)) {
+      this.scene.stop();
       this.scene.start('SongSelect');
     }
   }

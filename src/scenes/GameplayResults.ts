@@ -161,6 +161,7 @@ export default class GameplayResults extends Scene {
   }
   update() {
     if (this.input.keyboard.checkDown(this.cursors!.shift, 10)) {
+      this.scene.stop();
       this.scene.start('SongSelect');
     }
   }

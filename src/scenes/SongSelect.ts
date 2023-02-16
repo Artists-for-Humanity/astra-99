@@ -36,7 +36,13 @@ export default class SongSelect extends Scene {
       }
     });
   }
+
+  init() {
+    console.log('starting:');
+  }
+
   create() {
+    console.log('creating');
     this.gameStart = this.input.keyboard.createCursorKeys();
     this.add.image(330, 500, 'songlist-stats');
     this.add.text(779, 36, 'SONG SELECT', {
@@ -82,6 +88,9 @@ export default class SongSelect extends Scene {
   }
 
   update() {
+    if (!this.activeSong) {
+      this.activeSong = (this.songs?.getChildren() as GameObjects.Container[]).find(song => song.y == 500);
+    }
     if (this.input.keyboard.checkDown(this.gameStart!.up, 200) && (this.songs?.getChildren()[0] as GameObjects.Container).y !== 500) {
       this.songs!.incY(200);
       this.activeSong = (this.songs?.getChildren() as GameObjects.Container[]).find(song => song.y == 500);
@@ -94,9 +103,18 @@ export default class SongSelect extends Scene {
 
     if (this.input.keyboard.checkDown(this.gameStart!.space, 100)) {
       this.sound.play('enter-game');
-      const songSelected = songlist.getSongById(
-        (this.activeSong?.getByName('song-id') as GameObjects.Text).text || '001',
-      );
+      const songSelected = (() => {
+        try {
+          return songlist.getSongById(
+            (this.activeSong?.getByName('song-id') as GameObjects.Text).text,
+          );
+        } catch {
+          console.log(songlist.getSongById('001'));
+          return songlist.getSongById('001');
+        }
+      })();
+      console.log(songSelected);
+      this.scene.stop();
       this.scene.start('DifficultySelect', {
         songId: songSelected!.id,
         songArtist: songSelected!.artist,
@@ -106,6 +124,7 @@ export default class SongSelect extends Scene {
     }
 
     if (this.input.keyboard.checkDown(this.gameStart!.shift, 100)) {
+      this.scene.stop();
       this.scene.start('Menu');
     }
   }
