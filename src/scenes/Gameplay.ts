@@ -54,7 +54,6 @@ export default class Gameplay extends Scene {
     n200: number;
     n300: number;
   };
-  plays: number;
   songId: string;
   conductor: Conductor | undefined;
   mapBuilder?: MapBuilder;
@@ -96,7 +95,6 @@ export default class Gameplay extends Scene {
       n200: 0,
       n300: 0,
     };
-    this.plays = 0;
     this.isActiveGameplay = false;
     this.songIsOver = false;
     this.menuControls;
@@ -137,9 +135,14 @@ export default class Gameplay extends Scene {
   }
 
   create(data: any) {
+    this.beatmap = undefined;
+    this.isActiveGameplay = false;
+    this.songIsOver = false;
     this.songId = data.songId;
     this.beatmapAudio = (this.sound.add(`beatmap-audio-${data.songId}`) as Sound.WebAudioSound);
+    // console.log(this.cache.text.get(`beatmap-${data.songId}-${data.difficulty}`));
     this.beatmap = Beatmap(this.cache.text.get(`beatmap-${data.songId}-${data.difficulty}`));
+    console.log(this.beatmap.length);
     this.lastNote = this.beatmap[this.beatmap.length - 1];
     this.keybinds = this.input.keyboard.addKeys({
       Q: Input.Keyboard.KeyCodes.Q,

@@ -54,7 +54,6 @@ export default class DifficultySelect extends Scene {
   }
 
   create() {
-    
     const song = songlist.getSongById(this.songData!.songId);
     this.controls = this.input.keyboard.createCursorKeys();
     // const lightDifficulty = this.add.container(51, 95);
